@@ -14,11 +14,11 @@ void TestReadInput() {
 		str += "Bus    750: Tolstopaltsevo - Marushkino - Rasskazovka   \n";
 
 		std::istringstream input(str);
-		std::vector<std::pair<KindOfRequest, std::string>> res = input_istream::Read(input, true);
-		assert(res[0] == std::pair(KindOfRequest::AddStop, "Tolstopaltsevo : 55.611087, 37.208290"s));
-		assert(res[1] == std::pair(KindOfRequest::AddStop, "Marushkino: 55.595884, 37.209755"s));
-		assert(res[2] == std::pair(KindOfRequest::AddBus, "256: Biryulyovo Zapadnoye > Biryusinka > Universam > Biryulyovo Tovarnaya > Biryulyovo Passazhirskaya > Biryulyovo Zapadnoye"s));
-		assert(res[3] == std::pair(KindOfRequest::AddBus, "750: Tolstopaltsevo - Marushkino - Rasskazovka"s));
+		std::vector<std::pair<transport::detail::KindOfRequest, std::string>> res = input_istream::Read(input, true);
+		assert(res[0] == std::pair(transport::detail::KindOfRequest::AddStop, "Tolstopaltsevo : 55.611087, 37.208290"s));
+		assert(res[1] == std::pair(transport::detail::KindOfRequest::AddStop, "Marushkino: 55.595884, 37.209755"s));
+		assert(res[2] == std::pair(transport::detail::KindOfRequest::AddBus, "256: Biryulyovo Zapadnoye > Biryusinka > Universam > Biryulyovo Tovarnaya > Biryulyovo Passazhirskaya > Biryulyovo Zapadnoye"s));
+		assert(res[3] == std::pair(transport::detail::KindOfRequest::AddBus, "750: Tolstopaltsevo - Marushkino - Rasskazovka"s));
 
 	}
 }
@@ -41,8 +41,8 @@ void TestFillTransportCatalogueIstream() {
 		str += "Stop Prazhskaya: 55.611678, 37.603831";
 
 		std::istringstream input(str);
-		std::vector<std::pair<KindOfRequest, std::string>> vector_request = input_istream::Read(input, true);
-		auto res = input_istream::FillTransportCatalogue(vector_request);
+		std::vector<std::pair<transport::detail::KindOfRequest, std::string>> vector_request = input_istream::Read(input, true);
+		auto res = input_istream::MakeTransportCatalogue(vector_request);
 		auto* stop1 = res.FindStop("Tolstopaltsevo"s);
 		assert(stop1->name == "Tolstopaltsevo"s);
 		assert(stop1->latitude == 55.611087);
@@ -78,7 +78,7 @@ void TestFillTransportCatalogueIstream() {
 		str += "Bus 751\n"s;
 
 		std::istringstream output(str);
-		std::vector<std::pair<KindOfRequest, std::string>> vector_request_out = input_istream::Read(output, false);
+		std::vector<std::pair<transport::detail::KindOfRequest, std::string>> vector_request_out = input_istream::Read(output, false);
 		auto request = vector_request_out[0].second;
 		auto info = res.InfoBus(request);
 		assert(info.Find == true);
@@ -104,7 +104,7 @@ void TestFillTransportCatalogueIstream() {
 		str += "Stop Biryulyovo Zapadnoye\n"s;
 
 		std::istringstream outputStop(str);
-		std::vector<std::pair<KindOfRequest, std::string>> vector_request_out_stop = input_istream::Read(outputStop, false);
+		std::vector<std::pair<transport::detail::KindOfRequest, std::string>> vector_request_out_stop = input_istream::Read(outputStop, false);
 		auto request_stop = vector_request_out_stop[0].second;
 		auto infoStop = res.InfoStop(request_stop);
 		assert(infoStop.empty() == true);

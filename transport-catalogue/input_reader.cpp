@@ -1,7 +1,7 @@
-#include"input_reader.h"
-#include<utility>
-#include<sstream>
-#include<istream>
+#include "input_reader.h"
+#include <utility>
+#include <sstream>
+#include <istream>
 
 using namespace std::string_literals;
 
@@ -19,20 +19,20 @@ int input_istream::ReadLineWithNumber(std::istream& input) {
     return result;
 }
 
-std::vector<std::pair<KindOfRequest, std::string>> input_istream::Read(std::istream& input, bool FillCatalogue) {
+std::vector<std::pair<transport::detail::KindOfRequest, std::string>> input_istream::Read(std::istream& input, bool FillCatalogue) {
     int count_request = ReadLineWithNumber(input);
-    std::vector<std::pair<KindOfRequest, std::string>> vec_request(count_request);
+    std::vector<std::pair<transport::detail::KindOfRequest, std::string>> vec_request(count_request);
     for (int i = 0; i < count_request; ++i) {
         std::string request = ReadLine(input);
         size_t begin_KindOfRequest = request.find_first_not_of(' ');
         size_t end_KindOfRequest = request.find_first_of(' ', begin_KindOfRequest);
         size_t size_KindOfRequest = end_KindOfRequest - begin_KindOfRequest;
-        KindOfRequest kind_request;
+        transport::detail::KindOfRequest kind_request;
         if (request.substr(begin_KindOfRequest, size_KindOfRequest) == "Bus"s) {
-            kind_request = (FillCatalogue) ? KindOfRequest::AddBus : KindOfRequest::InfoBus;
+            kind_request = (FillCatalogue) ? transport::detail::KindOfRequest::AddBus : transport::detail::KindOfRequest::InfoBus;
         }
         else if (request.substr(begin_KindOfRequest, size_KindOfRequest) == "Stop"s) {
-            kind_request = (FillCatalogue) ? KindOfRequest::AddStop : KindOfRequest::InfoStop;
+            kind_request = (FillCatalogue) ? transport::detail::KindOfRequest::AddStop : transport::detail::KindOfRequest::InfoStop;
         }
         else {
             throw std::invalid_argument("Request "s + request.substr(begin_KindOfRequest, end_KindOfRequest) + " don't find."s);
@@ -45,13 +45,13 @@ std::vector<std::pair<KindOfRequest, std::string>> input_istream::Read(std::istr
     return vec_request;
 }
 
-TransportCatalogue input_istream::FillTransportCatalogue(const std::vector<std::pair<KindOfRequest, std::string>>& vec_request) {
-    TransportCatalogue res;
+transport::TransportCatalogue input_istream::MakeTransportCatalogue(const std::vector<std::pair<transport::detail::KindOfRequest, std::string>>& vec_request) {
+    transport::TransportCatalogue res;
 
     std::map<std::pair<std::string, std::string>, int> vector_info_distance_stop;
 
     for (auto& [kind_request, request] : vec_request) {
-        if (kind_request == KindOfRequest::AddStop) {
+        if (kind_request == transport::detail::KindOfRequest::AddStop) {
 
             size_t begin_place = request.find_first_of(':');
             size_t end_name = request.find_last_not_of(' ', begin_place - 1);
@@ -96,7 +96,7 @@ TransportCatalogue input_istream::FillTransportCatalogue(const std::vector<std::
     }
 
     for (auto& [kind_request, request] : vec_request) {
-        if (kind_request == KindOfRequest::AddBus) {
+        if (kind_request == transport::detail::KindOfRequest::AddBus) {
 
             size_t begin_stop = request.find_first_of(':');
             size_t end_bus = request.find_last_not_of(' ', begin_stop - 1);
@@ -124,9 +124,9 @@ TransportCatalogue input_istream::FillTransportCatalogue(const std::vector<std::
 }
 
 void input_istream::ReadStream(std::istream& input) {
-    std::vector<std::pair<KindOfRequest, std::string>> vec_request = Read(input, true);
-    TransportCatalogue TCatalogue = FillTransportCatalogue(vec_request);
-    std::vector<std::pair<KindOfRequest, std::string>> vec_request_out = Read(input, false);
+    std::vector<std::pair<transport::detail::KindOfRequest, std::string>> vec_request = Read(input, true);
+    transport::TransportCatalogue TCatalogue = MakeTransportCatalogue(vec_request);
+    std::vector<std::pair<transport::detail::KindOfRequest, std::string>> vec_request_out = Read(input, false);
     output::Reguest(TCatalogue, vec_request_out);
 }
 

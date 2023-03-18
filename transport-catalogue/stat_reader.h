@@ -4,5 +4,5 @@
 #include <iomanip>
 
 namespace output {
-	void Reguest(TransportCatalogue& TCatalogue, std::vector<std::pair<KindOfRequest, std::string>>& vec_request_out);
+	void Reguest(transport::TransportCatalogue& TCatalogue, std::vector<std::pair<transport::detail::KindOfRequest, std::string>>& vec_request_out);
 }

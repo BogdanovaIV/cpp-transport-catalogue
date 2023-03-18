@@ -9,9 +9,9 @@ namespace input_istream {
 
 	int ReadLineWithNumber(std::istream& input);
 
-	std::vector<std::pair<KindOfRequest, std::string>> Read(std::istream& input, bool FillCatalogue);
+	std::vector<std::pair<transport::detail::KindOfRequest, std::string>> Read(std::istream& input, bool FillCatalogue);
 
-	TransportCatalogue FillTransportCatalogue(const std::vector<std::pair<KindOfRequest, std::string>>& vec_request);
+	transport::TransportCatalogue MakeTransportCatalogue(const std::vector<std::pair<transport::detail::KindOfRequest, std::string>>& vec_request);
 
 	void ReadStream(std::istream& input);
 

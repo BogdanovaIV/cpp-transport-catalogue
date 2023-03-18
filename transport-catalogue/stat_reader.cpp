@@ -2,9 +2,9 @@
 
 using namespace std::string_literals;
 
-void output::Reguest(TransportCatalogue& TCatalogue, std::vector<std::pair<KindOfRequest, std::string>>& vec_request_out) {
+void output::Reguest(transport::TransportCatalogue& TCatalogue, std::vector<std::pair<transport::detail::KindOfRequest, std::string>>& vec_request_out) {
 	for (auto& [kind_request, request] : vec_request_out) {
-		if (kind_request == KindOfRequest::InfoBus) {
+		if (kind_request == transport::detail::KindOfRequest::InfoBus) {
 			auto info = TCatalogue.InfoBus(request);
 			if (info.Find) {
 				std::cout << "Bus "s << request << ": ";
@@ -19,7 +19,7 @@ void output::Reguest(TransportCatalogue& TCatalogue, std::vector<std::pair<KindO
 				std::cout << "not found"  <<std::endl;
 			}
 		}
-		else if (kind_request == KindOfRequest::InfoStop) {
+		else if (kind_request == transport::detail::KindOfRequest::InfoStop) {
 			try {
 				if (TCatalogue.FindStop(request)) {
 					auto info = TCatalogue.InfoStop(request);

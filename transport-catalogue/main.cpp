@@ -7,8 +7,14 @@
 using namespace std::string_literals;
 
 int main() {
+	//***!!!***
+	// This part is used for testing.
+	// 
 	//TestReadInput();
 	//TestFillTransportCatalogueIstream();
 	//std::cout << "Test complete!!!"s;
+	// 
+	//***!!!***
+
 	input_istream::ReadStream(std::cin);
 }
