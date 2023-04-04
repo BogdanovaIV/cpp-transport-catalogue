@@ -3,7 +3,7 @@
 #include <sstream>
 #include <istream>
 
-using namespace std::string_literals;
+using namespace std::literals;
 
 
 std::string input_istream::ReadLine(std::istream& input) {
@@ -123,11 +123,53 @@ transport::TransportCatalogue input_istream::MakeTransportCatalogue(const std::v
     return res;
 }
 
+void input_istream::Reguest(transport::TransportCatalogue& TCatalogue, std::vector<std::pair<transport::detail::KindOfRequest, std::string>>& vec_request_out)
+{
+    for (auto& [kind_request, request] : vec_request_out) {
+        if (kind_request == transport::detail::KindOfRequest::InfoBus) {
+            auto info = TCatalogue.InfoBus(request);
+            if (info.Find) {
+                std::cout << "Bus "sv << request << ": "sv;
+                std::cout << info.Size << " stops on route, "sv;
+                std::cout << info.UniqueStop << " unique stops, "sv;
+                std::cout << std::setprecision(6) << info.Lenght << " route length, "sv;
+                std::cout << std::setprecision(6) << info.crookedness << " curvature"sv << std::endl;
+
+            }
+            else {
+                std::cout << "Bus "sv << request << ": "sv;
+                std::cout << "not found"sv << std::endl;
+            }
+        }
+        else if (kind_request == transport::detail::KindOfRequest::InfoStop) {
+            try {
+                if (TCatalogue.FindStop(request)) {
+                    auto info = TCatalogue.InfoStop(request);
+                    if (info.empty()) {
+                        std::cout << "Stop "sv << request << ": "sv;
+                        std::cout << "no buses"sv << std::endl;
+
+                    }
+                    else {
+                        std::cout << "Stop "sv << request << ": buses"sv;
+                        for (auto bus : info) {
+                            std::cout << " "sv << bus;
+                        }
+                        std::cout << std::endl;
+                    }
+                }
+            }
+            catch (std::out_of_range const&) {
+                std::cout << "Stop "sv << request << ": "sv;
+                std::cout << "not found"sv << std::endl;
+            }
+        }
+    }
+}
+
 void input_istream::ReadStream(std::istream& input) {
     std::vector<std::pair<transport::detail::KindOfRequest, std::string>> vec_request = Read(input, true);
     transport::TransportCatalogue TCatalogue = MakeTransportCatalogue(vec_request);
     std::vector<std::pair<transport::detail::KindOfRequest, std::string>> vec_request_out = Read(input, false);
-    output::Reguest(TCatalogue, vec_request_out);
+    Reguest(TCatalogue, vec_request_out);
 }
-
-

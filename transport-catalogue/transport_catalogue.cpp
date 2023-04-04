@@ -35,17 +35,23 @@ std::set<std::string_view> transport::TransportCatalogue::InfoStop(const std::st
 void transport::TransportCatalogue::AddBus(std::string& BusName, std::vector<std::string>& BusStops, bool round) {
 	size_t size = (round) ? BusStops.size() : 2 * BusStops.size() - 1;
 	std::vector<const Stop*> Route(size);
+	const Stop* stop_begin = nullptr;
+	const Stop* stop_end = nullptr;
 	int i = 0;
 	for (auto& stop : BusStops) {
 		const Stop* stop_pointer = FindStop(stop);
 		Route[i] = stop_pointer;
+		if (stop_begin == nullptr) {
+			stop_begin = stop_pointer;
+		}
+		stop_end = stop_pointer;
 		if (!round) {
 			Route[size - i - 1] = stop_pointer;
 		}
 		++i;
 	}
 	
-	Bus bus{ std::move(BusName), std::move(Route) };
+	Bus bus{ std::move(BusName), std::move(Route), stop_begin, stop_end, round };
 	Buses.push_back(std::move(bus));
 	Bus* bus_pointer = &Buses.back();
 	for (auto stop: bus_pointer->Route) {
@@ -56,6 +62,10 @@ void transport::TransportCatalogue::AddBus(std::string& BusName, std::vector<std
 
 const transport::TransportCatalogue::Bus* transport::TransportCatalogue::FindBus(const std::string& BusName) const {
 	return Buses_to_Name.at(BusName);
+}
+
+const std::deque<transport::TransportCatalogue::Bus>& transport::TransportCatalogue::GetBuses() const {
+	return Buses;
 }
 
 transport::detail::BusInformation transport::TransportCatalogue::InfoBus(const std::string& BusName) {

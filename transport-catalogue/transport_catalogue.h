@@ -1,11 +1,11 @@
 #pragma once
-#include<deque>
-#include<string>
-#include<string_view>
-#include<vector>
-#include<unordered_map>
-#include<algorithm>
-#include<stdexcept>
+#include <deque>
+#include <string>
+#include <string_view>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
+#include <stdexcept>
 #include "geo.h"
 #include <iterator>
 #include <set>
@@ -34,6 +34,8 @@ namespace transport {
 	using namespace detail;
 
 	class TransportCatalogue {
+	public:
+
 		struct Stop {
 			std::string name;
 			double latitude;
@@ -43,10 +45,11 @@ namespace transport {
 		struct Bus {
 			std::string name;
 			std::vector<const Stop*> Route;
-
+			const Stop* stop_begin = nullptr;
+			const Stop* stop_end = nullptr;
+			bool is_roundtrip = false;
 		};
 
-	public:
 		TransportCatalogue() {}
 
 		TransportCatalogue(TransportCatalogue& TCatalogue) {
@@ -54,6 +57,8 @@ namespace transport {
 			std::swap(Stops_to_Name, TCatalogue.Stops_to_Name);
 			std::swap(Buses, TCatalogue.Buses);
 			std::swap(Buses_to_Name, TCatalogue.Buses_to_Name);
+			std::swap(Stop_to_Buses, TCatalogue.Stop_to_Buses);
+			std::swap(DistanceBetweenStops, TCatalogue.DistanceBetweenStops);
 		}
 
 		void AddStop(std::string& name, double latitude, double longitude);
@@ -68,6 +73,7 @@ namespace transport {
 		int FindDistanceBetweenStops(const std::string& StopFirst, const std::string& StopSecond);
 		int FindDistanceBetweenStops(const Stop* StopFirst, const Stop* StopSecond);
 		
+		const std::deque<Bus>& GetBuses() const;
 	private:
 
 		struct DistanceBetweenStopsHasher {

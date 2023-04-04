@@ -1,6 +1,5 @@
 #include "geo.h"
-#include "input_reader.h"
-#include "stat_reader.h"
+#include "request_handler.h"
 #include "transport_catalogue.h"
 #include "test.h"
 
@@ -12,9 +11,10 @@ int main() {
 	// 
 	//TestReadInput();
 	//TestFillTransportCatalogueIstream();
+	//TestFillTransportCatalogueJson();
 	//std::cout << "Test complete!!!"s;
 	// 
 	//***!!!***
 
-	input_istream::ReadStream(std::cin);
+	request_handler::Read(std::cin, request_handler::KindOfStream::json);
 }
