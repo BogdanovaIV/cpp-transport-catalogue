@@ -3,9 +3,4 @@
 #include <fstream>
 #include "json_reader.h"
 
-
-void TestReadInput();
-
-void TestFillTransportCatalogueIstream();
-
 void TestFillTransportCatalogueJson();

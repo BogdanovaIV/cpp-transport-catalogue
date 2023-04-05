@@ -1,8 +1,9 @@
 #pragma once
 #include "geo.h"
-#include "svg.h"
+#include "domain.h"
 #include <unordered_map>
 #include "transport_catalogue.h"
+#include <sstream>
 
 namespace map_renderer {
 
@@ -75,32 +76,21 @@ namespace map_renderer {
         double zoom_coeff_ = 0;
     };
 
-    class map: public SphereProjector {
+    class Renderer : public SphereProjector {
     public:
         
-        map(std::unordered_map<std::string, double>& parametrs, std::pair<double, double>& bus_label_offset,
-            std::pair<double, double>& stop_label_offset, svg::Color& underlayer_color, std::vector<svg::Color>& color_palette,
-            std::vector<geo::Coordinates>& coordinates, std::vector<std::pair<const transport::TransportCatalogue::Stop*, const transport::TransportCatalogue::Bus*>>& Stops_Buses);
+        Renderer(domain::ParametersMap& parameters, double padding,
+            std::pair<std::vector<geo::Coordinates>, std::vector<std::pair<const domain::Stop*, const domain::Bus*>>> CoordinatesAndStops_Buses);
 
-        void Render(std::ostream& out) const;
+        std::string Render() const;
 
     private:
-        double width_ = 0.0;                          //ширина изображения в пикселях
-        double height_ = 0.0;                         //высота изображения в пикселях
-        double line_width_ = 0.0;                     //толщина линий
-        double stop_radius_ = 0.0;                    //радиус окружностей
-        int bus_label_font_size_ = 0;                 //размер текста, которым написаны названия автобусных маршрутов
-        std::pair<double, double> bus_label_offset_;  //смещение надписи с названием маршрута относительно координат конечной остановки на карте
-        int stop_label_font_size_ = 0;                //размер текста, которым отображаются названия остановок
-        std::pair<double, double> stop_label_offset_; //смещение названия остановки относительно её координат на карте.
-        svg::Color underlayer_color_;                 //цвет подложки под названиями остановок и маршрутов
-        double underlayer_width_ = 0.0;               //толщина подложки под названиями остановок и маршрутов
-        std::vector<svg::Color> color_palette_;       //цветовая палитра
-        std::vector<std::pair<const transport::TransportCatalogue::Stop*, const transport::TransportCatalogue::Bus*>> Stops_Buses_; //остатоновки и маршруты
+        domain::ParametersMap parameters_;
+        std::vector<std::pair<const domain::Stop*, const domain::Bus*>> Stops_Buses_; //остатоновки и маршруты
 
-        void MakeTextForBus(const svg::Color& color, const svg::Point& point, const transport::TransportCatalogue::Bus* bus, std::vector<svg::Text>& text_buses) const;
+        void MakeTextForBus(const svg::Color& color, const svg::Point& point, const domain::Bus* bus, std::vector<svg::Text>& text_buses) const;
 
-        void MakeTextForStop(const svg::Point& point, const transport::TransportCatalogue::Stop* stop, svg::Document& doc) const;
+        void MakeTextForStop(const svg::Point& point, const domain::Stop* stop, svg::Document& doc) const;
 
     };
 }

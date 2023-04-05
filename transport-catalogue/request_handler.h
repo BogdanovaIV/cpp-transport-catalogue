@@ -1,15 +1,23 @@
 #pragma once
-#include "input_reader.h"
-#include "json_reader.h"
 #include <iostream>
 #include <iomanip>
+#include "map_renderer.h"
 
 namespace request_handler {
-    enum KindOfStream {
-        istream,
-        json
+
+    class Request{
+    public:
+        Request(transport::TransportCatalogue TCatalogue, domain::ParametersMap& parameters, double padding);
+
+        std::set<std::string_view> InfoStop(const std::string& Name);
+    
+        domain::BusInformation InfoBus(const std::string& BusName);
+
+        std::string Render();
+
+    private:
+        transport::TransportCatalogue TCatalogue_;
+        map_renderer::Renderer render_;
     };
 
-    void Read(std::istream& input, const KindOfStream& kind_stream);
-    void Draw(std::istream& input, const KindOfStream& kind_stream);
 }

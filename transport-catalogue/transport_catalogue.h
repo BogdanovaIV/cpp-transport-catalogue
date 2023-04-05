@@ -1,4 +1,5 @@
 #pragma once
+#include "domain.h"
 #include <deque>
 #include <string>
 #include <string_view>
@@ -21,14 +22,6 @@ namespace transport {
 			InfoStop
 		};
 
-		struct BusInformation {
-			bool Find;
-			size_t Size = 0;
-			int UniqueStop = 0;
-			double Lenght = 0.0;
-			double crookedness = 0.0;
-		};
-
 	}
 
 	using namespace detail;
@@ -36,60 +29,44 @@ namespace transport {
 	class TransportCatalogue {
 	public:
 
-		struct Stop {
-			std::string name;
-			double latitude;
-			double longitude;
-		};
-
-		struct Bus {
-			std::string name;
-			std::vector<const Stop*> Route;
-			const Stop* stop_begin = nullptr;
-			const Stop* stop_end = nullptr;
-			bool is_roundtrip = false;
-		};
-
 		TransportCatalogue() {}
 
-		TransportCatalogue(TransportCatalogue& TCatalogue) {
-			std::swap(Stops, TCatalogue.Stops);
-			std::swap(Stops_to_Name, TCatalogue.Stops_to_Name);
-			std::swap(Buses, TCatalogue.Buses);
-			std::swap(Buses_to_Name, TCatalogue.Buses_to_Name);
-			std::swap(Stop_to_Buses, TCatalogue.Stop_to_Buses);
-			std::swap(DistanceBetweenStops, TCatalogue.DistanceBetweenStops);
-		}
+		TransportCatalogue(TransportCatalogue& TCatalogue);
 
-		void AddStop(std::string& name, double latitude, double longitude);
-		const Stop* FindStop(const std::string& name) const;
+		TransportCatalogue(TransportCatalogue&& TCatalogue);
+
+		void AddStop(domain::Stop& stop);
+		const domain::Stop* FindStop(const std::string& name) const;
 		std::set<std::string_view> InfoStop(const std::string& Stop);
 
 		void AddBus(std::string& BusName, std::vector<std::string>& BusStops, bool round);
-		const Bus* FindBus(const std::string& BusName) const;
-		BusInformation InfoBus(const std::string& BusName);
+		const domain::Bus* FindBus(const std::string& BusName) const;
+		domain::BusInformation InfoBus(const std::string& BusName);
 		
 		void AddDistanceBetweenStops(const std::string& StopFirst, const std::string& StopSecond, int distance);
 		int FindDistanceBetweenStops(const std::string& StopFirst, const std::string& StopSecond);
-		int FindDistanceBetweenStops(const Stop* StopFirst, const Stop* StopSecond);
+		int FindDistanceBetweenStops(const domain::Stop* StopFirst, const domain::Stop* StopSecond);
 		
-		const std::deque<Bus>& GetBuses() const;
+		const std::deque<domain::Bus>& GetBuses() const;
+
+		std::pair<std::vector<geo::Coordinates>, std::vector<std::pair<const domain::Stop*, const domain::Bus*>>> GetAllStopsWithCoordinates();
+
 	private:
 
 		struct DistanceBetweenStopsHasher {
-			size_t operator()(const std::pair<const Stop*, const Stop*>& stops) const;
+			size_t operator()(const std::pair<const domain::Stop*, const domain::Stop*>& stops) const;
 		};
 
 		struct DistanceBetweenStopsEqual {
-			bool operator() (const std::pair<const Stop*, const Stop*>& left, const std::pair<const Stop*, const Stop*>& right) const;
+			bool operator() (const std::pair<const domain::Stop*, const domain::Stop*>& left, const std::pair<const domain::Stop*, const domain::Stop*>& right) const;
 		};
 
-		std::deque<Stop> Stops;
-		std::unordered_map<std::string_view, Stop*> Stops_to_Name;
-		std::deque<Bus> Buses;
-		std::unordered_map<std::string_view, Bus*> Buses_to_Name;
+		std::deque<domain::Stop> Stops;
+		std::unordered_map<std::string_view, domain::Stop*> Stops_to_Name;
+		std::deque<domain::Bus> Buses;
+		std::unordered_map<std::string_view, domain::Bus*> Buses_to_Name;
 		std::unordered_map<std::string_view, std::set<std::string_view>> Stop_to_Buses;
-		std::unordered_map<std::pair<const Stop*, const Stop*>, int, DistanceBetweenStopsHasher, DistanceBetweenStopsEqual> DistanceBetweenStops;
+		std::unordered_map<std::pair<const domain::Stop*, const domain::Stop*>, int, DistanceBetweenStopsHasher, DistanceBetweenStopsEqual> DistanceBetweenStops;
 
 	};
 }

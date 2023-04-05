@@ -3,19 +3,26 @@
 #include "transport_catalogue.h"
 #include "json.h"
 #include "request_handler.h"
-#include "map_renderer.h"
-#include <sstream>
-
 
 namespace input_json {
 
-	transport::TransportCatalogue MakeTransportCatalogue(const json::Document& document);
+	class Json_reader {
+	public:
 
-	void Reguest(transport::TransportCatalogue& TCatalogue, json::Document& document);
+		Json_reader(std::istream& input);
+		transport::TransportCatalogue MakeTransportCatalogue();
 
-	std::pair<json::Document, transport::TransportCatalogue> ReadStream(std::istream& input);
+		void Reguest(request_handler::Request& request);
 
-	svg::Color MakeColor(const json::Node&);
+		svg::Color MakeColor(const json::Node&);
 
-	map_renderer::map MakeParametersForMap(json::Document& document, const transport::TransportCatalogue& TCatalogue);
+		std::pair<domain::ParametersMap, double> MakeParametersForMap();
+
+		const json::Node& GetRoot() const;
+
+	private:
+
+		json::Document document_;
+
+	};
 }

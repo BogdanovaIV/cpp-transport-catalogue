@@ -257,71 +257,47 @@ Node LoadNode(istream& input) {
 
 }  // namespace
 
-Node::Node(Array array)
-    : value_(move(array)) {
-}
-
-Node::Node(Dict map)
-    : value_(move(map)) {
-}
-
-Node::Node(int value)
-    : value_(value) {
-}
-
-Node::Node(double value)
-    : value_(value) {
-}
-
-Node::Node(string value)
-    : value_(move(value)) {
-}
-
-Node::Node(bool value)
-    : value_(value) {
-}
-
 bool Node::IsInt() const {
-    return get_if<int>(&value_);
+    return std::holds_alternative<int>(*this);
 }
 
 bool Node::IsDouble() const {
-    bool res = get_if<int>(&value_);
+    bool res = std::holds_alternative<double>(*this);
     if (!res) {
-        res = get_if<double>(&value_);
+        res = std::holds_alternative<int>(*this);
     }
 
     return res;
 }
 
 bool Node::IsPureDouble() const {
-   return get_if<double>(&value_);
+   return std::holds_alternative<double>(*this);
 }
 
 bool Node::IsBool() const {
-    return get_if<bool>(&value_);
+    return std::holds_alternative<bool>(*this);
 }
 
 bool Node::IsString() const {
-    return get_if<std::string>(&value_);
+    return std::holds_alternative<std::string>(*this);
 }
 
 bool Node::IsNull() const {
-    return get_if<std::nullptr_t>(&value_);
+    return std::holds_alternative<std::nullptr_t>(*this);
 }
 
 bool Node::IsArray() const {
-    return get_if <Array>(&value_);
+    return std::holds_alternative<Array>(*this);
 }
 
 bool Node::IsMap() const {
-    return get_if <Dict>(&value_);
+    return std::holds_alternative<Dict>(*this);
 }
 
 int Node::AsInt() const {
 
     try {
-        const int& value = std::get<int>(value_);
+        const int& value = std::get<int>(*this);
         return value;
     }
     catch (const bad_variant_access&) {
@@ -333,7 +309,7 @@ int Node::AsInt() const {
 bool Node::AsBool() const {
 
     try {
-        const bool& value = std::get<bool>(value_);
+        const bool& value = std::get<bool>(*this);
         return value;
     }
     catch (const bad_variant_access&) {
@@ -345,12 +321,12 @@ bool Node::AsBool() const {
 double Node::AsDouble() const {
 
     try {
-        const double& value = std::get<double>(value_);
+        const double& value = std::get<double>(*this);
         return value;
     }
     catch (const bad_variant_access&) {
         try {
-            const int& value = std::get<int>(value_);
+            const int& value = std::get<int>(*this);
             return static_cast<const double&>(value);
         }
         catch (const bad_variant_access&) {
@@ -363,7 +339,7 @@ double Node::AsDouble() const {
 const std::string& Node::AsString() const {
 
     try {
-        const std::string& value = std::get<std::string>(value_);
+        const std::string& value = std::get<std::string>(*this);
         return value;
     }
     catch (const bad_variant_access&) {
@@ -375,7 +351,7 @@ const std::string& Node::AsString() const {
 const Array& Node::AsArray() const {
 
     try {
-        const Array& value = std::get<Array>(value_);
+        const Array& value = std::get<Array>(*this);
         return value;
     }
     catch (const bad_variant_access&) {
@@ -387,7 +363,7 @@ const Array& Node::AsArray() const {
 const Dict& Node::AsMap() const {
 
     try {
-        const Dict& value = std::get<Dict>(value_);
+        const Dict& value = std::get<Dict>(*this);
         return value;
     }
     catch (const bad_variant_access&) {
@@ -396,8 +372,8 @@ const Dict& Node::AsMap() const {
 
 }
 
-const Node::Value& Node::GetValue() const {
-    return value_; 
+const std::variant<std::nullptr_t, int, double, std::string, bool, Array, Dict>& Node::GetValue() const {
+    return *this; 
 }
 
 bool operator==(const Node& lhs, const Node& rhs) {
