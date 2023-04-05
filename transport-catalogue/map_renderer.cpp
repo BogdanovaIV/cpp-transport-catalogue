@@ -18,11 +18,7 @@ namespace map_renderer {
         return Project(coords);
     }
 
-    Renderer::Renderer(domain::ParametersMap& parameters, double padding,
-        std::pair<std::vector<geo::Coordinates>, std::vector<std::pair<const domain::Stop*, const domain::Bus*>>> CoordinatesAndStops_Buses):
-        SphereProjector(CoordinatesAndStops_Buses.first.begin(), CoordinatesAndStops_Buses.first.end(), parameters.width, parameters.height, padding),
-        parameters_(std::move(parameters)),
-        Stops_Buses_(CoordinatesAndStops_Buses.second) {
+    Renderer::Renderer(domain::ParametersMap& parameters) {
     }
 
     void Renderer::MakeTextForBus(const svg::Color& color, const svg::Point& point, const domain::Bus* bus, std::vector<svg::Text>& text_buses) const {
@@ -75,7 +71,9 @@ namespace map_renderer {
         doc.Add(std::move(text_bus));
     }
 
-    std::string Renderer::Render() const {
+    std::string Renderer::Render(const std::pair<std::vector<geo::Coordinates>, std::vector<std::pair<const domain::Stop*, const domain::Bus*>>>& CoordinatesAndStops_Buses) const {
+        auto& Stops_Buses = CoordinatesAndStops_Buses.second;
+        SphereProjector sphere_projector(CoordinatesAndStops_Buses.first.begin(), CoordinatesAndStops_Buses.first.end(), parameters_.width, parameters_.height, parameters_.padding);
         svg::Document doc;
         int i = -1;
         std::vector<svg::Text> text_buses;
@@ -90,14 +88,14 @@ namespace map_renderer {
         };
 
         std::set<const domain::Stop*, OrderingRule> unique_stops;
-        for (auto& route : Stops_Buses_) {
-            svg::Point point = Project({ route.first->latitude, route.first->longitude });
+        for (auto& route : Stops_Buses) {
+            svg::Point point = sphere_projector({ route.first->latitude, route.first->longitude });
             if (route.second != bus) {
                 if (bus != nullptr) {
                     doc.Add(std::move(polyline));
                     polyline = svg::Polyline{};
                     if (!bus->is_roundtrip && bus->stop_begin != bus->stop_end) {
-                        MakeTextForBus(parameters_.color_palette.at(i), Project({ bus->stop_end->latitude, bus->stop_end->longitude}), bus, text_buses);
+                        MakeTextForBus(parameters_.color_palette.at(i), sphere_projector({ bus->stop_end->latitude, bus->stop_end->longitude}), bus, text_buses);
                     }
                 }
                 i = (i + 1) == static_cast<int>(parameters_.color_palette.size()) ? 0 : (i + 1);
@@ -117,7 +115,7 @@ namespace map_renderer {
         if (polyline.SizePoints() != 0) {
             doc.Add(std::move(polyline));
             if (bus != nullptr && !bus->is_roundtrip && bus->stop_begin != bus->stop_end) {
-                MakeTextForBus(parameters_.color_palette.at(i), Project({ bus->stop_end->latitude, bus->stop_end->longitude }), bus, text_buses);
+                MakeTextForBus(parameters_.color_palette.at(i), sphere_projector({ bus->stop_end->latitude, bus->stop_end->longitude }), bus, text_buses);
             }
         }
         for (auto& text : text_buses) {
@@ -127,11 +125,11 @@ namespace map_renderer {
             svg::Circle c;
             c.SetFillColor(svg::Color("white"s));
             c.SetRadius(parameters_.stop_radius);
-            c.SetCenter(Project({ stop->latitude, stop->longitude }));
+            c.SetCenter(sphere_projector({ stop->latitude, stop->longitude }));
             doc.Add(std::move(c));
         }
         for (auto stop : unique_stops) {
-            MakeTextForStop(Project({ stop->latitude, stop->longitude }), stop, doc);
+            MakeTextForStop(sphere_projector({ stop->latitude, stop->longitude }), stop, doc);
         }
         std::ostringstream out;
         doc.Render(out);

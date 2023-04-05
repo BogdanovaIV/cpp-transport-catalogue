@@ -3,8 +3,8 @@
 using namespace std::literals;
 
 namespace request_handler {
-	Request::Request(transport::TransportCatalogue TCatalogue, domain::ParametersMap& parameters, double padding) :
-		TCatalogue_(std::move(TCatalogue)), render_(map_renderer::Renderer(parameters, padding, TCatalogue_.GetAllStopsWithCoordinates())) {
+	Request::Request(transport::TransportCatalogue TCatalogue, domain::ParametersMap& parameters) :
+		TCatalogue_(std::move(TCatalogue)), render_(map_renderer::Renderer(parameters)) {
 
 	}
 
@@ -26,6 +26,6 @@ namespace request_handler {
 	}
 
 	std::string Request::Render() {
-		return render_.Render();
+		return render_.Render(TCatalogue_.GetAllStopsWithCoordinates());
 	}
 }

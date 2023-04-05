@@ -76,17 +76,15 @@ namespace map_renderer {
         double zoom_coeff_ = 0;
     };
 
-    class Renderer : public SphereProjector {
+    class Renderer {
     public:
         
-        Renderer(domain::ParametersMap& parameters, double padding,
-            std::pair<std::vector<geo::Coordinates>, std::vector<std::pair<const domain::Stop*, const domain::Bus*>>> CoordinatesAndStops_Buses);
+        Renderer(domain::ParametersMap& parameters);
 
-        std::string Render() const;
+        std::string Render(const std::pair<std::vector<geo::Coordinates>, std::vector<std::pair<const domain::Stop*, const domain::Bus*>>>& CoordinatesAndStops_Buses) const;
 
     private:
         domain::ParametersMap parameters_;
-        std::vector<std::pair<const domain::Stop*, const domain::Bus*>> Stops_Buses_; //остатоновки и маршруты
 
         void MakeTextForBus(const svg::Color& color, const svg::Point& point, const domain::Bus* bus, std::vector<svg::Text>& text_buses) const;
 

@@ -16,6 +16,6 @@ int main() {
 	//***!!!***
 	input_json::Json_reader json_reader{ std::cin };
 	auto [parameters, padding] = json_reader.MakeParametersForMap();
-	request_handler::Request request{ json_reader.MakeTransportCatalogue(), parameters, padding };
+	request_handler::Request request{ json_reader.MakeTransportCatalogue(), parameters};
 	json_reader.Reguest(request);
 }

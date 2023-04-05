@@ -16,6 +16,7 @@ namespace domain {
         svg::Color underlayer_color;                 //цвет подложки под названиями остановок и маршрутов
         double underlayer_width = 0.0;               //толщина подложки под названиями остановок и маршрутов
         std::vector<svg::Color> color_palette;       //цветовая палитра
+        double padding = 0.0;
     };
 
     struct Stop {
