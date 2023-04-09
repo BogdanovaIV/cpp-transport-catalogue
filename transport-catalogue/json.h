@@ -25,6 +25,11 @@ class Node : private std::variant<std::nullptr_t, int, double, std::string, bool
 public:
 
     using variant::variant;
+    using Value = variant;
+
+    Node(Node::Value value) : Value(value) {
+
+    }
 
     bool IsInt() const;
     bool IsDouble() const;
@@ -33,15 +38,15 @@ public:
     bool IsString() const;
     bool IsNull() const;
     bool IsArray() const;
-    bool IsMap() const;
+    bool IsDict() const;
 
     int AsInt() const;
     bool AsBool() const;
     double AsDouble() const;
     const std::string& AsString() const;
     const Array& AsArray() const;
-    const Dict& AsMap() const;
-    const std::variant<std::nullptr_t, int, double, std::string, bool, Array, Dict>& GetValue() const;
+    const Dict& AsDict() const;
+    const Value& GetValue() const;
 
 };
 
@@ -61,22 +66,6 @@ private:
 Document Load(std::istream& input);
 bool operator==(const Document& lhs, const Document& rhs);
 bool operator!=(const Document& lhs, const Document& rhs);
-
-void PrintValue(std::nullptr_t, std::ostream& out);
-
-void PrintValue(const int value, std::ostream& out);
-
-void PrintValue(const double value, std::ostream& out);
-
-void PrintValue(const std::string value, std::ostream& out);
-
-void PrintValue(const bool value, std::ostream& out);
-
-void PrintValue(const Array value, std::ostream& out);
-
-void PrintValue(const Dict value, std::ostream& out);
-
-void PrintNode(const Node& node, std::ostream& out);
 
 void Print(const Document& doc, std::ostream& output);
 

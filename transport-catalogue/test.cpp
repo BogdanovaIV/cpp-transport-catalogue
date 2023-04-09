@@ -31,10 +31,10 @@ void TestFillTransportCatalogueJson() {
 				assert(Bus1->Route.at(2)->name == "Морской вокзал"s);
 
 				const json::Node& root = json_reader.GetRoot();
-				const json::Node& stat_requests = root.AsMap().at("stat_requests"s);
+				const json::Node& stat_requests = root.AsDict().at("stat_requests"s);
 
 				auto request = stat_requests.AsArray()[1];
-				auto info = res.InfoBus(request.AsMap().at("name"s).AsString());
+				auto info = res.InfoBus(request.AsDict().at("name"s).AsString());
 				assert(info.Find == true);
 				assert(info.Size == 3);
 				assert(info.UniqueStop == 2);
@@ -42,7 +42,7 @@ void TestFillTransportCatalogueJson() {
 				assert(std::round(info.crookedness * 100000) / 100000 == 1.23199);
 
 				auto request2 = stat_requests.AsArray()[0];
-				auto infoStop = res.InfoStop(request2.AsMap().at("name"s).AsString());
+				auto infoStop = res.InfoStop(request2.AsDict().at("name"s).AsString());
 
 				int i = 0;
 				for (auto bus : infoStop) {
@@ -96,11 +96,11 @@ void TestFillTransportCatalogueJson() {
 				assert(Bus2->Route.at(6)->name == "Tolstopaltsevo"s);
 
 				const json::Node& root = json_reader.GetRoot();
-				const json::Node& stat_requests = root.AsMap().at("stat_requests"s);
+				const json::Node& stat_requests = root.AsDict().at("stat_requests"s);
 
 				auto request = stat_requests.AsArray()[0];
 
-				auto info = res.InfoBus(request.AsMap().at("name"s).AsString());
+				auto info = res.InfoBus(request.AsDict().at("name"s).AsString());
 				assert(info.Find == true);
 				assert(info.Size == 6);
 				assert(info.UniqueStop == 5);
@@ -108,7 +108,7 @@ void TestFillTransportCatalogueJson() {
 				assert(std::round(info.crookedness * 100000) / 100000 == 1.36124);
 
 				request = stat_requests.AsArray()[1];
-				info = res.InfoBus(request.AsMap().at("name"s).AsString());
+				info = res.InfoBus(request.AsDict().at("name"s).AsString());
 				assert(info.Find == true);
 				assert(info.Size == 7);
 				assert(info.UniqueStop == 3);
@@ -116,15 +116,15 @@ void TestFillTransportCatalogueJson() {
 				assert(std::round(info.crookedness * 100000) / 100000 == 1.30853);
 
 				request = stat_requests.AsArray()[2];
-				info = res.InfoBus(request.AsMap().at("name"s).AsString());
+				info = res.InfoBus(request.AsDict().at("name"s).AsString());
 				assert(info.Find == false);
 
 				auto request_stop = stat_requests.AsArray()[3];
-				auto infoStop = res.InfoStop(request_stop.AsMap().at("name"s).AsString());
+				auto infoStop = res.InfoStop(request_stop.AsDict().at("name"s).AsString());
 				assert(infoStop.empty() == true);
 
 				request_stop = stat_requests.AsArray()[4];
-				infoStop = res.InfoStop(request_stop.AsMap().at("name"s).AsString());
+				infoStop = res.InfoStop(request_stop.AsDict().at("name"s).AsString());
 				int i = 0;
 				for (auto bus : infoStop) {
 					if (i == 0) {

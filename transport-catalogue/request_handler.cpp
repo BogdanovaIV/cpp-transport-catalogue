@@ -3,7 +3,7 @@
 using namespace std::literals;
 
 namespace request_handler {
-	Request::Request(transport::TransportCatalogue TCatalogue, domain::ParametersMap& parameters) :
+	Request::Request(transport::TransportCatalogue&& TCatalogue, domain::ParametersMap& parameters) :
 		TCatalogue_(std::move(TCatalogue)), render_(map_renderer::Renderer(parameters)) {
 
 	}

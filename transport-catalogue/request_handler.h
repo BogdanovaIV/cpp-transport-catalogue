@@ -7,7 +7,7 @@ namespace request_handler {
 
     class Request{
     public:
-        Request(transport::TransportCatalogue TCatalogue, domain::ParametersMap& parameters);
+        Request(transport::TransportCatalogue&& TCatalogue, domain::ParametersMap& parameters);
 
         std::set<std::string_view> InfoStop(const std::string& Name);
     

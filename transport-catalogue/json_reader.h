@@ -1,7 +1,7 @@
 #pragma once
 
 #include "transport_catalogue.h"
-#include "json.h"
+#include "json_builder.h"
 #include "request_handler.h"
 
 namespace input_json {
@@ -16,7 +16,7 @@ namespace input_json {
 
 		svg::Color MakeColor(const json::Node&);
 
-		std::pair<domain::ParametersMap, double> MakeParametersForMap();
+		domain::ParametersMap MakeParametersForMap();
 
 		const json::Node& GetRoot() const;
 

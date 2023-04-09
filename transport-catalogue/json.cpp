@@ -290,7 +290,7 @@ bool Node::IsArray() const {
     return std::holds_alternative<Array>(*this);
 }
 
-bool Node::IsMap() const {
+bool Node::IsDict() const {
     return std::holds_alternative<Dict>(*this);
 }
 
@@ -360,7 +360,7 @@ const Array& Node::AsArray() const {
 
 }
 
-const Dict& Node::AsMap() const {
+const Dict& Node::AsDict() const {
 
     try {
         const Dict& value = std::get<Dict>(*this);
@@ -372,7 +372,7 @@ const Dict& Node::AsMap() const {
 
 }
 
-const std::variant<std::nullptr_t, int, double, std::string, bool, Array, Dict>& Node::GetValue() const {
+const Node::Value& Node::GetValue() const {
     return *this; 
 }
 
@@ -396,7 +396,7 @@ bool operator==(const Node& lhs, const Node& rhs) {
      else if (lhs.IsArray() && rhs.IsArray() && lhs.AsArray() == rhs.AsArray()) {
         return true;
     }
-    else if (lhs.IsMap() && rhs.IsMap() && lhs.AsMap() == rhs.AsMap()) {
+    else if (lhs.IsDict() && rhs.IsDict() && lhs.AsDict() == rhs.AsDict()) {
         return true;
     }
 
@@ -422,7 +422,7 @@ bool operator!=(const Node& lhs, const Node& rhs) {
     else if (lhs.IsArray() && rhs.IsArray() && lhs.AsArray() == rhs.AsArray()) {
         return false;
     }
-    else if (lhs.IsMap() && rhs.IsMap() && lhs.AsMap() == rhs.AsMap()) {
+    else if (lhs.IsDict() && rhs.IsDict() && lhs.AsDict() == rhs.AsDict()) {
         return false;
     }
 
@@ -449,84 +449,128 @@ bool operator!=(const Document& lhs, const Document& rhs) {
     return lhs.GetRoot() != rhs.GetRoot();
 }
 
-void PrintValue(std::nullptr_t, std::ostream& out) {
-    out << "null"sv;
-}
+struct PrintContext {
+    std::ostream& out;
+    int indent_step = 4;
+    int indent = 0;
 
-void PrintValue(const int value, std::ostream& out) {
-    out << value;
-}
-
-void PrintValue(const double value, std::ostream& out) {
-    out << value;
-}
-
-void PrintValue(const std::string value, std::ostream& out) {
-    out << '\"';
-    for(char c : value) {
-        if (c == '\"') {
-            out << "\\\""sv;
+    void PrintIndent() const {
+        for (int i = 0; i < indent; ++i) {
+            out.put(' ');
         }
-        else if (c == '\r') {
+    }
+
+    PrintContext Indented() const {
+        return { out, indent_step, indent_step + indent };
+    }
+};
+
+void PrintNode(const Node& value, const PrintContext& ctx);
+
+template <typename Value>
+void PrintValue(const Value& value, const PrintContext& ctx) {
+    ctx.out << value;
+}
+
+void PrintString(const std::string& value, std::ostream& out) {
+    out.put('"');
+    for (const char c : value) {
+        switch (c) {
+        case '\r':
             out << "\\r"sv;
-        }
-        else if (c == '\n') {
+            break;
+        case '\n':
             out << "\\n"sv;
+            break;
+        case '"':
+            // Символы " и \ выводятся как \" или \\, соответственно
+            [[fallthrough]];
+        case '\\':
+            out.put('\\');
+            [[fallthrough]];
+        default:
+            out.put(c);
+            break;
         }
-        else if (c == '\\') {
-            out << "\\\\"sv;
+    }
+    out.put('"');
+}
+
+template <>
+void PrintValue<std::string>(const std::string& value, const PrintContext& ctx) {
+    PrintString(value, ctx.out);
+}
+
+template <>
+void PrintValue<std::nullptr_t>(const std::nullptr_t&, const PrintContext& ctx) {
+    ctx.out << "null"sv;
+}
+
+// В специализаци шаблона PrintValue для типа bool параметр value передаётся
+// по константной ссылке, как и в основном шаблоне.
+// В качестве альтернативы можно использовать перегрузку:
+// void PrintValue(bool value, const PrintContext& ctx);
+template <>
+void PrintValue<bool>(const bool& value, const PrintContext& ctx) {
+    ctx.out << (value ? "true"sv : "false"sv);
+}
+
+template <>
+void PrintValue<Array>(const Array& nodes, const PrintContext& ctx) {
+    std::ostream& out = ctx.out;
+    out << "[\n"sv;
+    bool first = true;
+    auto inner_ctx = ctx.Indented();
+    for (const Node& node : nodes) {
+        if (first) {
+            first = false;
         }
         else {
-            out << c;
+            out << ",\n"sv;
         }
+        inner_ctx.PrintIndent();
+        PrintNode(node, inner_ctx);
     }
-    out<<'\"';
+    out.put('\n');
+    ctx.PrintIndent();
+    out.put(']');
 }
 
-void PrintValue(const bool value, std::ostream& out) {
-    if (value) {
-        out << "true"sv;
-    }
-    else {
-        out << "false"sv;
-    }
-}
-
-void PrintValue(const Array value, std::ostream& out) {
-    out << '[';
+template <>
+void PrintValue<Dict>(const Dict& nodes, const PrintContext& ctx) {
+    std::ostream& out = ctx.out;
+    out << "{\n"sv;
     bool first = true;
-    for (auto val : value) {
-        if (!first) {
-            out << ',';
+    auto inner_ctx = ctx.Indented();
+    for (const auto& [key, node] : nodes) {
+        if (first) {
+            first = false;
         }
-        PrintNode(val, out);
-        first = false;
+        else {
+            out << ",\n"sv;
+        }
+        inner_ctx.PrintIndent();
+        PrintString(key, ctx.out);
+        out << ": "sv;
+        PrintNode(node, inner_ctx);
     }
-    out << ']';
+    out.put('\n');
+    ctx.PrintIndent();
+    out.put('}');
 }
 
-void PrintValue(const Dict value, std::ostream& out) {
-    out << "{ ";
-    bool first = true;
-    for (auto& [key, val] : value) {
-        if (!first) {
-            out << ',';
-        }
-        out <<'\"' << key << "\": "sv;
-        PrintNode(val, out);
-        first = false;
-    }
-    out << " }";
-}
-
-void PrintNode(const Node& node, std::ostream& out) {
+void PrintNode(const Node& node, const PrintContext& ctx) {
+ 
     std::visit(
-        [&out](const auto& value) { PrintValue(value, out); },
+        [&ctx](const auto& value) {
+            PrintValue(value, ctx);
+        },
         node.GetValue());
+
 }
 
 void Print(const Document& doc, std::ostream& output) {
-    PrintNode(doc.GetRoot(), output);
+    PrintNode(doc.GetRoot(), PrintContext{ output });
 }
 
 }  // namespace json

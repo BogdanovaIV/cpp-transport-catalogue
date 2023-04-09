@@ -18,7 +18,7 @@ namespace map_renderer {
         return Project(coords);
     }
 
-    Renderer::Renderer(domain::ParametersMap& parameters) {
+    Renderer::Renderer(domain::ParametersMap& parameters) : parameters_(parameters){
     }
 
     void Renderer::MakeTextForBus(const svg::Color& color, const svg::Point& point, const domain::Bus* bus, std::vector<svg::Text>& text_buses) const {
