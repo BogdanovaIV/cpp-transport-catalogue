@@ -2,43 +2,43 @@
 
 namespace json {
 
-	DictContext BaseContext::StartDict() {
+	Builder::DictItemContext Builder::BaseContext::StartDict() {
 		return builder_.StartDict();
 	}
 	
-	KeyContext BaseContext::Key(std::string key) {
+	Builder::DictValueContext Builder::BaseContext::Key(std::string key) {
 		return builder_.Key(key);
 	}
 
-	Builder& BaseContext::EndDict() {
+	Builder& Builder::BaseContext::EndDict() {
 		builder_.EndDict();
 		return builder_;
 	}
 
-	StartArrayContext BaseContext::StartArray() {	
+	Builder::ArrayItemContext Builder::BaseContext::StartArray() {
 		return builder_.StartArray();;
 	}
 
-	Builder& BaseContext::EndArray() {
+	Builder& Builder::BaseContext::EndArray() {
 		builder_.EndArray();
 		return builder_;
 	}
 
-	Node& BaseContext::Build() {
+	Node Builder::BaseContext::Build() {
 		return builder_.Build();
 	}
 
-	ValueDictContext KeyContext::Value(Node::Value value) {
+	Builder::DictItemContext Builder::DictValueContext::Value(Node::Value value) {
 		return builder_.ValueDict(value);
 	}
 
-	StartArrayContext StartArrayContext::Value(Node::Value value) {
+	Builder::ArrayItemContext Builder::ArrayItemContext::Value(Node::Value value) {
 		builder_.Value(value);
-		return StartArrayContext{ builder_ };
+		return ArrayItemContext{ builder_ };
 	}
 
-	DictContext Builder::StartDict() {
-		kind_function Kfunction = kind_function::start_dict_;
+	Builder::DictItemContext Builder::StartDict() {
+		kind_function_ Kfunction = kind_function_::start_dict_;
 		if (!allowed_function_.empty() && !std::count(allowed_function_.begin(), allowed_function_.end(), Kfunction)) {
 			throw std::logic_error("Logic error StartDict (wrong step).");
 		}
@@ -76,14 +76,13 @@ namespace json {
 		}
 
 		allowed_function_.clear();
-		allowed_function_.push_back(kind_function::key_);
-		allowed_function_.push_back(kind_function::end_dict_);
-		//auto res = DictContext{ *this };
-		return DictContext{ *this };
+		allowed_function_.push_back(kind_function_::key_);
+		allowed_function_.push_back(kind_function_::end_dict_);
+		return DictItemContext{ *this };
 	}
 
-	KeyContext Builder::Key(std::string key) {
-		kind_function Kfunction = kind_function::key_;
+	Builder::DictValueContext Builder::Key(std::string key) {
+		kind_function_ Kfunction = kind_function_::key_;
 		if (! std::count(allowed_function_.begin(), allowed_function_.end(), Kfunction)) {
 			throw std::logic_error("Logic error Key (wrong step).");
 		}
@@ -105,15 +104,15 @@ namespace json {
 			}
 		}
 		allowed_function_.clear();
-		allowed_function_.push_back(kind_function::value_);
-		allowed_function_.push_back(kind_function::start_array_);
-		allowed_function_.push_back(kind_function::start_dict_);
-		KeyContext res{ *this };
+		allowed_function_.push_back(kind_function_::value_);
+		allowed_function_.push_back(kind_function_::start_array_);
+		allowed_function_.push_back(kind_function_::start_dict_);
+		DictValueContext res{ *this };
 		return res;
 	}
 
 	Builder& Builder::Value(Node::Value value) {
-		kind_function Kfunction = kind_function::value_;
+		kind_function_ Kfunction = kind_function_::value_;
 		if (!allowed_function_.empty() && !std::count(allowed_function_.begin(), allowed_function_.end(), Kfunction)) {
 			throw std::logic_error("Logic error Value (wrong step).");
 		}
@@ -121,7 +120,7 @@ namespace json {
 			root_ = Node(value);
 
 			allowed_function_.clear();
-			allowed_function_.push_back(kind_function::build_);
+			allowed_function_.push_back(kind_function_::build_);
 		}
 		else {
 			if (nodes_stack_.empty()) {
@@ -135,9 +134,9 @@ namespace json {
 					array.emplace_back(Node(value));
 
 					allowed_function_.clear();
-					allowed_function_.push_back(kind_function::value_);
-					allowed_function_.push_back(kind_function::start_dict_);
-					allowed_function_.push_back(kind_function::end_array_);
+					allowed_function_.push_back(kind_function_::value_);
+					allowed_function_.push_back(kind_function_::start_dict_);
+					allowed_function_.push_back(kind_function_::end_array_);
 
 				}
 				else if (last_action->IsDict()) {
@@ -148,8 +147,8 @@ namespace json {
 					dict[last_key] = Node(value);
 
 					allowed_function_.clear();
-					allowed_function_.push_back(kind_function::key_);
-					allowed_function_.push_back(kind_function::end_dict_);
+					allowed_function_.push_back(kind_function_::key_);
+					allowed_function_.push_back(kind_function_::end_dict_);
 				}
 				else {
 					throw std::logic_error("Logic error StartDict (didn't find right parent).");
@@ -161,8 +160,8 @@ namespace json {
 
 	}
 
-	ValueDictContext Builder::ValueDict(Node::Value value) {
-		kind_function Kfunction = kind_function::value_;
+	Builder::DictItemContext Builder::ValueDict(Node::Value value) {
+		kind_function_ Kfunction = kind_function_::value_;
 		if (!allowed_function_.empty() && !std::count(allowed_function_.begin(), allowed_function_.end(), Kfunction)) {
 			throw std::logic_error("Logic error Value (wrong step).");
 		}
@@ -170,7 +169,7 @@ namespace json {
 			root_ = Node(value);
 
 			allowed_function_.clear();
-			allowed_function_.push_back(kind_function::build_);
+			allowed_function_.push_back(kind_function_::build_);
 		}
 		else {
 			if (nodes_stack_.empty()) {
@@ -187,8 +186,8 @@ namespace json {
 					dict[last_key] = Node(value);
 
 					allowed_function_.clear();
-					allowed_function_.push_back(kind_function::key_);
-					allowed_function_.push_back(kind_function::end_dict_);
+					allowed_function_.push_back(kind_function_::key_);
+					allowed_function_.push_back(kind_function_::end_dict_);
 				}
 				else {
 					throw std::logic_error("Logic error StartDict (didn't find right parent).");
@@ -196,12 +195,12 @@ namespace json {
 			}
 		}
 
-		return ValueDictContext{ *this };
+		return DictItemContext{ *this };
 
 	}
 
 	Builder& Builder::EndDict() {
-		kind_function Kfunction = kind_function::end_dict_;
+		kind_function_ Kfunction = kind_function_::end_dict_;
 		if (!std::count(allowed_function_.begin(), allowed_function_.end(), Kfunction)) {
 			throw std::logic_error("Logic error EndDict (wrong step).");
 		}
@@ -221,20 +220,20 @@ namespace json {
 		
 		allowed_function_.clear();
 		if (!nodes_stack_.empty()) {
-			allowed_function_.push_back(kind_function::value_);
-			allowed_function_.push_back(kind_function::end_array_);
-			allowed_function_.push_back(kind_function::key_);
-			allowed_function_.push_back(kind_function::start_dict_);
+			allowed_function_.push_back(kind_function_::value_);
+			allowed_function_.push_back(kind_function_::end_array_);
+			allowed_function_.push_back(kind_function_::key_);
+			allowed_function_.push_back(kind_function_::start_dict_);
 		}
 		else {
-			allowed_function_.push_back(kind_function::build_);
+			allowed_function_.push_back(kind_function_::build_);
 		}
 
 		return *this ;
 	}
 
-	StartArrayContext Builder::StartArray() {
-		kind_function Kfunction = kind_function::start_array_;
+	Builder::ArrayItemContext Builder::StartArray() {
+		kind_function_ Kfunction = kind_function_::start_array_;
 		if (!allowed_function_.empty() && !std::count(allowed_function_.begin(), allowed_function_.end(), Kfunction)) {
 			throw std::logic_error("Logic error StartArray (wrong step).");
 		}
@@ -272,17 +271,17 @@ namespace json {
 		}
 
 		allowed_function_.clear();
-		allowed_function_.push_back(kind_function::start_array_);
-		allowed_function_.push_back(kind_function::start_dict_);
-		allowed_function_.push_back(kind_function::value_);
-		allowed_function_.push_back(kind_function::end_array_);
+		allowed_function_.push_back(kind_function_::start_array_);
+		allowed_function_.push_back(kind_function_::start_dict_);
+		allowed_function_.push_back(kind_function_::value_);
+		allowed_function_.push_back(kind_function_::end_array_);
 
-		return StartArrayContext{ *this };
+		return ArrayItemContext{ *this };
 
 	}
 
 	Builder& Builder::EndArray() {
-		kind_function Kfunction = kind_function::end_array_;
+		kind_function_ Kfunction = kind_function_::end_array_;
 		if (!std::count(allowed_function_.begin(), allowed_function_.end(), Kfunction)) {
 			throw std::logic_error("Logic error EndArray (wrong step).");
 		}
@@ -302,12 +301,12 @@ namespace json {
 
 		allowed_function_.clear();
 		if (!nodes_stack_.empty()) {
-			allowed_function_.push_back(kind_function::value_);
-			allowed_function_.push_back(kind_function::end_dict_);
-			allowed_function_.push_back(kind_function::key_);
+			allowed_function_.push_back(kind_function_::value_);
+			allowed_function_.push_back(kind_function_::end_dict_);
+			allowed_function_.push_back(kind_function_::key_);
 		}
 		else {
-			allowed_function_.push_back(kind_function::build_);
+			allowed_function_.push_back(kind_function_::build_);
 		}
 
 		return *this;
@@ -315,7 +314,7 @@ namespace json {
 	}
 
 	Node& Builder::Build() {
-		kind_function Kfunction = kind_function::build_;
+		kind_function_ Kfunction = kind_function_::build_;
 		if ((!allowed_function_.empty() && !std::count(allowed_function_.begin(), allowed_function_.end(), Kfunction)) 
 			|| !nodes_stack_.empty()
 			|| root_.IsNull()) {
