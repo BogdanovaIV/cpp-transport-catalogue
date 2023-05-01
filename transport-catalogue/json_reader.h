@@ -3,6 +3,10 @@
 #include "transport_catalogue.h"
 #include "json_builder.h"
 #include "request_handler.h"
+#include <type_traits>
+
+template<class>
+inline constexpr bool always_false_v = false;
 
 namespace input_json {
 
@@ -19,6 +23,8 @@ namespace input_json {
 		domain::ParametersMap MakeParametersForMap();
 
 		const json::Node& GetRoot() const;
+
+		domain::RoutingSettings MakeRoutingSetting();
 
 	private:
 

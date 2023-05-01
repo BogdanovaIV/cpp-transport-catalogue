@@ -2,7 +2,7 @@
 #include "request_handler.h"
 #include "transport_catalogue.h"
 #include "json_reader.h"
-#include "test.h"
+//#include "test.h"
 
 using namespace std::string_literals;
 
@@ -16,6 +16,6 @@ int main() {
 	//***!!!***
 	input_json::Json_reader json_reader{ std::cin };
 	auto parameters = json_reader.MakeParametersForMap();
-	request_handler::Request request(json_reader.MakeTransportCatalogue(), parameters);
+	request_handler::Request request(json_reader.MakeTransportCatalogue(), parameters, json_reader.MakeRoutingSetting());
 	json_reader.Reguest(request);
 }

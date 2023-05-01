@@ -26,7 +26,7 @@ Node LoadArray(istream& input) {
         throw ParsingError("Failed to read Array. Symbol ] missing."s);
     }
 
-    return Node(move(result));
+    return Node(std::move(result));
 }
 
 Node LoadNumber(istream& input) {
@@ -159,7 +159,7 @@ Node LoadString(istream& input) {
         ++it;
     }
 
-    return Node(move(s));
+    return Node(std::move(s));
 }
 
 Node LoadNull(istream& input) {
@@ -207,14 +207,14 @@ Node LoadDict(istream& input) {
 
         string key = LoadString(input).AsString();
         input >> c;
-        result.insert({move(key), LoadNode(input)});
+        result.insert({std::move(key), LoadNode(input)});
     }
 
     if (!symbol_exit) {
         throw ParsingError("Failed to read Array. Symbol } missing."s);
     }
 
-    return Node(move(result));
+    return Node(std::move(result));
 }
 
 Node LoadNode(istream& input) {
@@ -430,7 +430,7 @@ bool operator!=(const Node& lhs, const Node& rhs) {
 }
 
 Document::Document(Node root)
-    : root_(move(root)) {
+    : root_(std::move(root)) {
 }
 
 const Node& Document::GetRoot() const {

@@ -1,5 +1,6 @@
 #include "json_reader.h"
 
+
 using namespace std::literals;
 
 namespace input_json {
@@ -12,7 +13,7 @@ namespace input_json {
         const json::Node& root = document_.GetRoot();
         const json::Node& base_requests = root.AsDict().at("base_requests");
         std::map<std::pair<std::string, std::string>, int> vector_info_distance_stop;
-
+		size_t count = 0;
         for (auto& request : base_requests.AsArray()) {
             if (request.AsDict().at("type").AsString() == "Stop") {
                 std::string name = request.AsDict().at("name").AsString();
@@ -24,7 +25,8 @@ namespace input_json {
                         vector_info_distance_stop[std::pair{ stop_name, name }] = distance.AsDouble();
                     }
                 }
-				domain::Stop stop{ name, latitude, longitude };
+				domain::Stop stop{ name, latitude, longitude, count };
+				++count;
 				res.AddStop(stop);
             }
         }
@@ -55,7 +57,8 @@ namespace input_json {
 		const json::Node& stat_requests = root.AsDict().at("stat_requests"s);
 		json::Array respone;
 		for (auto& stat_request : stat_requests.AsArray()) {
-			if (stat_request.AsDict().at("type"s).AsString() == "Stop"sv) {
+			if (stat_request.AsDict().at("type"s).AsString() == "Stop"sv)
+			{
 				try {
 					auto info = request.InfoStop(stat_request.AsDict().at("name"s).AsString());
 					json::Array buses;
@@ -80,7 +83,8 @@ namespace input_json {
 						.Build());
 				}
 			}
-			else if (stat_request.AsDict().at("type"s).AsString() == "Bus"sv) {
+			else if (stat_request.AsDict().at("type"s).AsString() == "Bus"sv) 
+			{
 				auto info = request.InfoBus(stat_request.AsDict().at("name"s).AsString());
 				if (info.Find) {
 					respone.emplace_back(
@@ -105,7 +109,8 @@ namespace input_json {
 				}
 
 			}
-			else if (stat_request.AsDict().at("type"s).AsString() == "Map"sv) {
+			else if (stat_request.AsDict().at("type"s).AsString() == "Map"sv)
+			{
 				auto output = request.Render();
 				respone.emplace_back(
 					json::Builder{}
@@ -114,6 +119,56 @@ namespace input_json {
 					.Key("request_id"s).Value(stat_request.AsDict().at("id"s).AsInt())
 					.EndDict()
 					.Build());
+			}
+			else if (stat_request.AsDict().at("type"s).AsString() == "Route"sv)
+			{
+				auto route_info = request.FasterRoute(stat_request.AsDict().at("from"s).AsString(), stat_request.AsDict().at("to"s).AsString());
+				if (route_info.has_value()) 
+				{
+					auto respone_item_builder = json::Builder{};
+					auto respone_item_dict = respone_item_builder.StartDict();
+
+					auto items_array = respone_item_dict.Key("request_id"s).Value(stat_request.AsDict().at("id"s).AsInt())
+						.Key("total_time"s).Value(route_info.value().total_time)
+						.Key("items"s).StartArray();
+					
+					for(auto& item : route_info.value().items) {
+						std::visit([&items_array](auto&& arg) {
+							using T = std::decay_t<decltype(arg)>;
+							if constexpr (std::is_same_v<T, domain::RouteItemWait>) {
+								items_array.StartDict()
+									.Key("stop_name"s).Value(static_cast<std::string>(arg.stop_name))
+									.Key("time"s).Value(arg.time)
+									.Key("type"s).Value("Wait"s)
+									.EndDict();
+							}
+							else if constexpr (std::is_same_v<T, domain::RouteItemBus>) {
+								items_array.StartDict()
+									.Key("bus"s).Value(static_cast<std::string>(arg.bus))
+									.Key("span_count"s).Value(arg.span_count)
+									.Key("time"s).Value(arg.time)
+									.Key("type"s).Value("Bus"s)
+									.EndDict();
+							}
+							else {
+								static_assert(always_false_v<T>, "non-exhaustive visitor!");
+							}
+							}, item);
+					}
+					items_array.EndArray();
+					respone_item_dict.EndDict();
+					respone.emplace_back(std::move(respone_item_builder.Build()));
+				}
+				else 
+				{
+					respone.emplace_back(
+						json::Builder{}
+						.StartDict()
+						.Key("error_message"s).Value("not found"s)
+						.Key("request_id"s).Value(stat_request.AsDict().at("id"s).AsInt())
+						.EndDict()
+						.Build());
+				}
 			}
 		}
 		json::Print(json::Document{ respone }, std::cout);
@@ -176,7 +231,22 @@ namespace input_json {
 
 		return parametrs;
 	}
+
 	const json::Node& Json_reader::GetRoot() const {
 		return document_.GetRoot();
+	}
+
+	domain::RoutingSettings Json_reader::MakeRoutingSetting() {
+		const json::Node& root = document_.GetRoot();
+		const json::Dict& routing_settings = root.AsDict().at("routing_settings"s).AsDict();
+		domain::RoutingSettings result;
+		if (routing_settings.count("bus_wait_time"s)) {
+			result.bus_wait_time = routing_settings.at("bus_wait_time"s).AsInt();
+		}
+		if (routing_settings.count("bus_velocity"s)) {
+			result.bus_velocity = routing_settings.at("bus_velocity"s).AsInt();
+
+		}
+		return result;
 	}
 }

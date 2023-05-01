@@ -30,6 +30,7 @@ bool transport::TransportCatalogue::DistanceBetweenStopsEqual::operator() (const
 
 void transport::TransportCatalogue::AddStop(domain::Stop& stop) {
 
+	stop.id = Stops.size();
 	Stops.push_back(std::move(stop));
 	domain::Stop* stop_pointer = &Stops.back();
 	Stops_to_Name.insert({ stop_pointer->name, stop_pointer });
@@ -38,6 +39,11 @@ void transport::TransportCatalogue::AddStop(domain::Stop& stop) {
 const domain::Stop* transport::TransportCatalogue::FindStop(const std::string& name) const{
 	return Stops_to_Name.at(name);
 }
+
+std::set<std::string_view> transport::TransportCatalogue::InfoStop(std::string_view Stop) {
+	return InfoStop(static_cast<std::string>(Stop));
+}
+
 
 std::set<std::string_view> transport::TransportCatalogue::InfoStop(const std::string& Stop) {
 
@@ -49,8 +55,9 @@ std::set<std::string_view> transport::TransportCatalogue::InfoStop(const std::st
 	}
 }
 
+
 void transport::TransportCatalogue::AddBus(std::string& BusName, std::vector<std::string>& BusStops, bool round) {
-	size_t size = (round) ? BusStops.size() : 2 * BusStops.size() - 1;
+	size_t size = BusStops.size();
 	std::vector<const domain::Stop*> Route(size);
 	const domain::Stop* stop_begin = nullptr;
 	const domain::Stop* stop_end = nullptr;
@@ -62,9 +69,6 @@ void transport::TransportCatalogue::AddBus(std::string& BusName, std::vector<std
 			stop_begin = stop_pointer;
 		}
 		stop_end = stop_pointer;
-		if (!round) {
-			Route[size - i - 1] = stop_pointer;
-		}
 		++i;
 	}
 	
@@ -75,6 +79,10 @@ void transport::TransportCatalogue::AddBus(std::string& BusName, std::vector<std
 		Stop_to_Buses[stop->name].emplace(bus_pointer->name);
 	}
 	Buses_to_Name.insert({ bus_pointer->name, bus_pointer });
+}
+
+const domain::Bus* transport::TransportCatalogue::FindBus(std::string_view BusName) const {
+	return FindBus(static_cast<std::string>(BusName));
 }
 
 const domain::Bus* transport::TransportCatalogue::FindBus(const std::string& BusName) const {
@@ -90,13 +98,19 @@ domain::BusInformation transport::TransportCatalogue::InfoBus(const std::string&
 	try {
 		auto Bus = FindBus(BusName);
 		res.Find = true;
-		res.Size = Bus->Route.size();
+		res.Size = Bus->is_roundtrip ? Bus->Route.size() : Bus->Route.size() * 2 - 1;
 		res.Lenght = 0;
-		std::vector<const domain::Stop*> vec_copy(res.Size);
+		std::vector<const domain::Stop*> vec_copy(Bus->Route.size());
 		std::copy(Bus->Route.begin(), Bus->Route.end(), vec_copy.begin());
+		
+		if (!Bus->is_roundtrip) {
+			vec_copy.resize(Bus->Route.size() * 2 - 1);
+			std::copy(Bus->Route.rbegin() + 1, Bus->Route.rend(), vec_copy.begin() + Bus->Route.size());
+		}
+
 		auto first = vec_copy.begin();
 		auto second = first + 1;
-		for (auto& stop = second; stop < vec_copy.end(); ++stop) {
+		for (auto& stop = second; stop != vec_copy.end(); ++stop) {
 			auto stop_ref = *stop;
 			auto first_ref = *first;
 			auto crookedness = geo::ComputeDistance({first_ref->latitude, first_ref->longitude}, {stop_ref->latitude, stop_ref->longitude});
@@ -143,6 +157,21 @@ std::pair<std::vector<geo::Coordinates>, std::vector<std::pair<const domain::Sto
 			coordinates.push_back({ stop->latitude, stop->longitude });
 			Stops_Buses.push_back({ stop, bus });
 		}
+		if (!bus->is_roundtrip) {
+			for (auto stop = bus->Route.rbegin() + 1; stop != bus->Route.rend(); ++stop) {
+				coordinates.push_back({ (*stop)->latitude, (*stop)->longitude });
+				Stops_Buses.push_back({ *stop, bus });
+			}
+
+		}
 	}
 	return { coordinates , Stops_Buses };
+}
+
+const domain::Stop* transport::TransportCatalogue::GetStopByIndex(int index) const {
+	return &Stops[index];
+}
+
+size_t transport::TransportCatalogue::GetSizeStops() const {
+	return Stops.size();
 }

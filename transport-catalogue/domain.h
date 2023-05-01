@@ -1,21 +1,22 @@
 #pragma once
 #include <vector>
+#include <variant>
 #include "svg.h"
 
 namespace domain {
 
     struct ParametersMap {
-        double width = 0.0;                          //ширина изображения в пикселях
-        double height = 0.0;                         //высота изображения в пикселях
-        double line_width = 0.0;                     //толщина линий
-        double stop_radius = 0.0;                    //радиус окружностей
-        int bus_label_font_size = 0;                 //размер текста, которым написаны названия автобусных маршрутов
-        std::pair<double, double> bus_label_offset{0.0, 0.0};  //смещение надписи с названием маршрута относительно координат конечной остановки на карте
-        int stop_label_font_size = 0;                //размер текста, которым отображаются названия остановок
-        std::pair<double, double> stop_label_offset{0.0, 0.0}; //смещение названия остановки относительно её координат на карте.
-        svg::Color underlayer_color;                 //цвет подложки под названиями остановок и маршрутов
-        double underlayer_width = 0.0;               //толщина подложки под названиями остановок и маршрутов
-        std::vector<svg::Color> color_palette;       //цветовая палитра
+        double width = 0.0;                          //С€РёСЂРёРЅР° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РІ РїРёРєСЃРµР»СЏС…
+        double height = 0.0;                         //РІС‹СЃРѕС‚Р° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РІ РїРёРєСЃРµР»СЏС…
+        double line_width = 0.0;                     //С‚РѕР»С‰РёРЅР° Р»РёРЅРёР№
+        double stop_radius = 0.0;                    //СЂР°РґРёСѓСЃ РѕРєСЂСѓР¶РЅРѕСЃС‚РµР№
+        int bus_label_font_size = 0;                 //СЂР°Р·РјРµСЂ С‚РµРєСЃС‚Р°, РєРѕС‚РѕСЂС‹Рј РЅР°РїРёСЃР°РЅС‹ РЅР°Р·РІР°РЅРёСЏ Р°РІС‚РѕР±СѓСЃРЅС‹С… РјР°СЂС€СЂСѓС‚РѕРІ
+        std::pair<double, double> bus_label_offset{0.0, 0.0};  //СЃРјРµС‰РµРЅРёРµ РЅР°РґРїРёСЃРё СЃ РЅР°Р·РІР°РЅРёРµРј РјР°СЂС€СЂСѓС‚Р° РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РєРѕРѕСЂРґРёРЅР°С‚ РєРѕРЅРµС‡РЅРѕР№ РѕСЃС‚Р°РЅРѕРІРєРё РЅР° РєР°СЂС‚Рµ
+        int stop_label_font_size = 0;                //СЂР°Р·РјРµСЂ С‚РµРєСЃС‚Р°, РєРѕС‚РѕСЂС‹Рј РѕС‚РѕР±СЂР°Р¶Р°СЋС‚СЃСЏ РЅР°Р·РІР°РЅРёСЏ РѕСЃС‚Р°РЅРѕРІРѕРє
+        std::pair<double, double> stop_label_offset{0.0, 0.0}; //СЃРјРµС‰РµРЅРёРµ РЅР°Р·РІР°РЅРёСЏ РѕСЃС‚Р°РЅРѕРІРєРё РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РµС‘ РєРѕРѕСЂРґРёРЅР°С‚ РЅР° РєР°СЂС‚Рµ.
+        svg::Color underlayer_color;                 //С†РІРµС‚ РїРѕРґР»РѕР¶РєРё РїРѕРґ РЅР°Р·РІР°РЅРёСЏРјРё РѕСЃС‚Р°РЅРѕРІРѕРє Рё РјР°СЂС€СЂСѓС‚РѕРІ
+        double underlayer_width = 0.0;               //С‚РѕР»С‰РёРЅР° РїРѕРґР»РѕР¶РєРё РїРѕРґ РЅР°Р·РІР°РЅРёСЏРјРё РѕСЃС‚Р°РЅРѕРІРѕРє Рё РјР°СЂС€СЂСѓС‚РѕРІ
+        std::vector<svg::Color> color_palette;       //С†РІРµС‚РѕРІР°СЏ РїР°Р»РёС‚СЂР°
         double padding = 0.0;
     };
 
@@ -23,6 +24,7 @@ namespace domain {
         std::string name;
         double latitude;
         double longitude;
+        size_t id;
     };
 
     struct Bus {
@@ -40,4 +42,32 @@ namespace domain {
         double Lenght = 0.0;
         double crookedness = 0.0;
     };
-}
+
+    struct RoutingSettings {
+        int bus_velocity = 0;  //СЃРєРѕСЂРѕСЃС‚СЊ Р°РІС‚РѕР±СѓСЃР°, РІ РєРј/С‡
+        int bus_wait_time = 0; //РІСЂРµРјСЏ РѕР¶РёРґР°РЅРёСЏ Р°РІС‚РѕР±СѓСЃР° РЅР° РѕСЃС‚Р°РЅРѕРІРєРµ, РІ РјРёРЅСѓС‚Р°С…
+    };
+
+    struct RouteItemWait {
+        std::string_view stop_name;
+        double time = 0.;
+    };
+
+    struct RouteItemBus {
+        std::string_view bus;
+        int span_count = 0;
+        double time = 0.;
+    };
+    struct RouteInfo {
+        double total_time = 0.;
+        std::vector<std::variant<RouteItemWait, RouteItemBus>> items;
+    };
+
+    struct Route {
+        const domain::Stop* from = nullptr;
+        const domain::Stop* to = nullptr;
+        double time = 0.;
+        int span_count = 0;
+    };
+
+ }

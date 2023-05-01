@@ -27,6 +27,8 @@ namespace transport {
 	using namespace detail;
 
 	class TransportCatalogue {
+		struct DistanceBetweenStopsHasher;
+		struct DistanceBetweenStopsEqual;
 	public:
 
 		TransportCatalogue() {}
@@ -37,9 +39,11 @@ namespace transport {
 
 		void AddStop(domain::Stop& stop);
 		const domain::Stop* FindStop(const std::string& name) const;
+		std::set<std::string_view> InfoStop(std::string_view Stop);
 		std::set<std::string_view> InfoStop(const std::string& Stop);
 
 		void AddBus(std::string& BusName, std::vector<std::string>& BusStops, bool round);
+		const domain::Bus* FindBus(std::string_view BusName) const;
 		const domain::Bus* FindBus(const std::string& BusName) const;
 		domain::BusInformation InfoBus(const std::string& BusName);
 		
@@ -50,6 +54,10 @@ namespace transport {
 		const std::deque<domain::Bus>& GetBuses() const;
 
 		std::pair<std::vector<geo::Coordinates>, std::vector<std::pair<const domain::Stop*, const domain::Bus*>>> GetAllStopsWithCoordinates();
+
+		const domain::Stop* GetStopByIndex(int index) const;
+
+		size_t GetSizeStops() const;
 
 	private:
 
@@ -67,6 +75,5 @@ namespace transport {
 		std::unordered_map<std::string_view, domain::Bus*> Buses_to_Name;
 		std::unordered_map<std::string_view, std::set<std::string_view>> Stop_to_Buses;
 		std::unordered_map<std::pair<const domain::Stop*, const domain::Stop*>, int, DistanceBetweenStopsHasher, DistanceBetweenStopsEqual> DistanceBetweenStops;
-
 	};
 }
