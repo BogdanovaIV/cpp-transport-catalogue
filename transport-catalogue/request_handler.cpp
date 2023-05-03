@@ -4,7 +4,7 @@ using namespace std::literals;
 
 namespace request_handler {
 	Request::Request(transport::TransportCatalogue&& TCatalogue, domain::ParametersMap& parameters, domain::RoutingSettings&& routing_setting) :
-		TCatalogue_(std::move(TCatalogue), static_cast<double>(routing_setting.bus_velocity) * 1000 / 60, routing_setting.bus_wait_time), render_(map_renderer::Renderer(parameters)), routing_setting_(std::move(routing_setting)) {
+		TCatalogue_(std::move(TCatalogue)), render_(map_renderer::Renderer(parameters)), routing_setting_(std::move(routing_setting)) {
 
 	}
 
@@ -30,6 +30,10 @@ namespace request_handler {
 	}
 
 	std::optional<domain::RouteInfo> Request::FasterRoute(std::string from, std::string to) {
-		return TCatalogue_.FindFastestRoute(TCatalogue_.FindStop(from)->id, TCatalogue_.FindStop(to)->id);
+		if (!TRoutes_.has_value()) {
+			TRoutes_.emplace(transport::TransportRoutes(TCatalogue_, routing_setting_));
+		}
+		auto& TRoutes = TRoutes_.value();
+		return TRoutes.FindFastestRoute(TCatalogue_.FindStop(from)->id, TCatalogue_.FindStop(to)->id);
 	}
 }

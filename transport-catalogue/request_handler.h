@@ -21,7 +21,8 @@ namespace request_handler {
         std::optional<domain::RouteInfo> FasterRoute(std::string from, std::string to);
 
     private:
-        transport::TransportRoutes TCatalogue_;
+        transport::TransportCatalogue TCatalogue_;
+        std::optional<transport::TransportRoutes> TRoutes_;
         map_renderer::Renderer render_;
         domain::RoutingSettings routing_setting_;
         graph::DirectedWeightedGraph<double> Graph_;

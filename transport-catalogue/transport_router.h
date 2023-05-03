@@ -8,29 +8,21 @@
 namespace transport {
  
  
-    class TransportRoutes : public transport::TransportCatalogue {
+    class TransportRoutes {
 	public:
  
-        TransportRoutes();
+        TransportRoutes(transport::TransportCatalogue& TCatalogue, domain::RoutingSettings RoutingSettings_);
 
-        TransportRoutes(double speed_meters,
-            int waiting_time_at_station_minute);
-
-        TransportRoutes(transport::TransportCatalogue& TCatalogue, double speed_meters,
-            int waiting_time_at_station_minute);
-
-        TransportRoutes(transport::TransportCatalogue&& TCatalogue, double speed_meters,
-            int waiting_time_at_station_minute);
-
+        TransportRoutes(TransportRoutes && other);
 
         std::optional<domain::RouteInfo> FindFastestRoute(size_t from, size_t to);
 
     private:
          
-         graph::DirectedWeightedGraph<double> Graph_;
+         std::unique_ptr <graph::DirectedWeightedGraph<double>> Graph_;
+         std::unique_ptr <graph::Router<double>> router_;
          double speed_meters_ = 0;
          int waiting_time_at_station_minute_ = 0;
-         std::unique_ptr <graph::Router<double>> router_;
 
      
          struct RouteStopsHasher {
@@ -44,20 +36,20 @@ namespace transport {
          using TRoute = std::unordered_map<domain::Route, const domain::Bus*, RouteStopsHasher, RouteStopsEqual>;
 
          template <typename Iterator>
-         void AddInRoutes(Iterator Begin, Iterator End, const domain::Bus& bus, TRoute& routes);
+         void AddInRoutes(transport::TransportCatalogue& TCatalogue, Iterator Begin, Iterator End, const domain::Bus& bus, TRoute& routes);
 
-         void BuildRouteGraph();
+         void BuildRouteGraph(transport::TransportCatalogue& TCatalogue);
 
     };
 
     template <typename Iterator>
-    void TransportRoutes::AddInRoutes(Iterator Begin, Iterator End, const domain::Bus& bus, TRoute& routes) {
+    void TransportRoutes::AddInRoutes(transport::TransportCatalogue& TCatalogue, Iterator Begin, Iterator End, const domain::Bus& bus, TRoute& routes) {
         for (auto from_stop = Begin; from_stop != (End - 1); ++from_stop) {
             double weight = 0.;
             int span_count = 0;
             const domain::Stop* from_stop_dist = *from_stop;
             for (auto to_stop = (from_stop + 1); to_stop != End; ++to_stop) {
-                weight += FindDistanceBetweenStops(from_stop_dist, *to_stop);
+                weight += TCatalogue.FindDistanceBetweenStops(from_stop_dist, *to_stop);
                 if (from_stop_dist != *to_stop) {
                     ++span_count;
                 }
