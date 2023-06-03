@@ -6,39 +6,39 @@
 #include <queue>
 
 namespace transport {
- 
- 
+
+
     class TransportRoutes {
-	public:
- 
+    public:
+
         TransportRoutes(transport::TransportCatalogue& TCatalogue, domain::RoutingSettings RoutingSettings_);
 
-        TransportRoutes(TransportRoutes && other);
+        TransportRoutes(TransportRoutes&& other);
 
         std::optional<domain::RouteInfo> FindFastestRoute(size_t from, size_t to);
 
     private:
-         
-         std::unique_ptr <graph::DirectedWeightedGraph<double>> Graph_;
-         std::unique_ptr <graph::Router<double>> router_;
-         double speed_meters_ = 0;
-         int waiting_time_at_station_minute_ = 0;
 
-     
-         struct RouteStopsHasher {
-             size_t operator()(const domain::Route& route) const;
-         };
+        std::unique_ptr <graph::DirectedWeightedGraph<double>> Graph_;
+        std::unique_ptr <graph::Router<double>> router_;
+        double speed_meters_ = 0;
+        int waiting_time_at_station_minute_ = 0;
 
-         struct RouteStopsEqual {
-             bool operator() (const domain::Route& left, const domain::Route& right) const;
-         };
 
-         using TRoute = std::unordered_map<domain::Route, const domain::Bus*, RouteStopsHasher, RouteStopsEqual>;
+        struct RouteStopsHasher {
+            size_t operator()(const domain::Route& route) const;
+        };
 
-         template <typename Iterator>
-         void AddInRoutes(transport::TransportCatalogue& TCatalogue, Iterator Begin, Iterator End, const domain::Bus& bus, TRoute& routes);
+        struct RouteStopsEqual {
+            bool operator() (const domain::Route& left, const domain::Route& right) const;
+        };
 
-         void BuildRouteGraph(transport::TransportCatalogue& TCatalogue);
+        using TRoute = std::unordered_map<domain::Route, const domain::Bus*, RouteStopsHasher, RouteStopsEqual>;
+
+        template <typename Iterator>
+        void AddInRoutes(transport::TransportCatalogue& TCatalogue, Iterator Begin, Iterator End, const domain::Bus& bus, TRoute& routes);
+
+        void BuildRouteGraph(transport::TransportCatalogue& TCatalogue);
 
     };
 

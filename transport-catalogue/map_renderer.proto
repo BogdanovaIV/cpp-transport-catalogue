@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package map_renderer_serialize;
+
+message Color{
+    uint32  Type = 1;
+    string Name = 2;
+    uint32  r = 3;
+    uint32  g = 4;
+    uint32  b = 5;
+    double a = 6;
+}
+
+message ParametersMap{
+    double width = 1;                          //ширина изображения в пикселях
+    double height = 2;                         //высота изображения в пикселях
+    double line_width = 3;                     //толщина линий
+    double stop_radius = 4;                    //радиус окружностей
+    int32 bus_label_font_size = 5;                 //размер текста, которым написаны названия автобусных маршрутов
+    double bus_label_offset1 = 6;  //смещение надписи с названием маршрута относительно координат конечной остановки на карте
+    double bus_label_offset2 = 7;  //смещение надписи с названием маршрута относительно координат конечной остановки на карте
+    int32 stop_label_font_size = 8;                //размер текста, которым отображаются названия остановок
+    double stop_label_offset1 = 9; //смещение названия остановки относительно её координат на карте.
+    double stop_label_offset2 = 10; //смещение названия остановки относительно её координат на карте.
+    Color underlayer_color = 11;                 //цвет подложки под названиями остановок и маршрутов
+    double underlayer_width = 12;               //толщина подложки под названиями остановок и маршрутов
+    repeated Color color_palette = 13;       //цветовая палитра
+    double padding = 14;
+}

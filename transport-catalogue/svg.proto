@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package svg_serialize;
+
+message RoutingSettings{
+    int32 bus_velocity = 1;  //скорость автобуса, в км/ч
+    int32 bus_wait_time = 2; //время ожидания автобуса на остановке, в минутах
+}

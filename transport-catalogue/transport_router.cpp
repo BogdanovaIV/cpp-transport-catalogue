@@ -1,9 +1,9 @@
 #include "transport_router.h"
 
 namespace transport {
-  
+
     TransportRoutes::TransportRoutes(transport::TransportCatalogue& TCatalogue, domain::RoutingSettings RoutingSettings_) :
-        speed_meters_(RoutingSettings_.bus_velocity * 1000 / 60),
+        speed_meters_(static_cast<double>(RoutingSettings_.bus_velocity) * 1000 / 60),
         waiting_time_at_station_minute_(RoutingSettings_.bus_wait_time)
     {
         BuildRouteGraph(TCatalogue);

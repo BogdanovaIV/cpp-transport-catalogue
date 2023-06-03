@@ -26,6 +26,8 @@ namespace input_json {
 
 		domain::RoutingSettings MakeRoutingSetting();
 
+		std::string GetSerializationSettingsFile();
+
 	private:
 
 		json::Document document_;

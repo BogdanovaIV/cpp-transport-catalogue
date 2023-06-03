@@ -3,8 +3,8 @@
 namespace geo {
 
     struct Coordinates {
-        double lat; // РЁРёСЂРѕС‚Р°
-        double lng; // Р”РѕР»РіРѕС‚Р°
+        double lat; // Широта
+        double lng; // Долгота
         bool operator==(const Coordinates& other) const {
             return lat == other.lat && lng == other.lng;
         }

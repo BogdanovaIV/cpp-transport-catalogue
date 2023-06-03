@@ -1,21 +1,28 @@
-#include "geo.h"
-#include "request_handler.h"
-#include "transport_catalogue.h"
-#include "json_reader.h"
-//#include "test.h"
+#include"serialization.h"
+#include <fstream>
 
-using namespace std::string_literals;
+using namespace std::literals;
 
-int main() {
-	//***!!!***
-	// This part is used for testing.
-	// 
-	//TestFillTransportCatalogueJson();
-	//std::cout << "Test complete!!!"s;
-	// 
-	//***!!!***
-	input_json::Json_reader json_reader{ std::cin };
-	auto parameters = json_reader.MakeParametersForMap();
-	request_handler::Request request(json_reader.MakeTransportCatalogue(), parameters, json_reader.MakeRoutingSetting());
-	json_reader.Reguest(request);
+void PrintUsage(std::ostream& stream = std::cerr) {
+    stream << "Usage: transport_catalogue [make_base|process_requests]\n"sv;
+}
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        PrintUsage();
+        return 1;
+    }
+
+    const std::string_view mode(argv[1]);
+
+    if (mode == "make_base"sv) {
+        serilization::MakeBase();
+    } else if (mode == "process_requests"sv) {
+
+        serilization::ProcessRequests();
+
+    } else {
+        PrintUsage();
+        return 1;
+    }
 }

@@ -18,7 +18,7 @@ namespace map_renderer {
         return Project(coords);
     }
 
-    Renderer::Renderer(domain::ParametersMap& parameters) : parameters_(parameters){
+    Renderer::Renderer(domain::ParametersMap& parameters) : parameters_(parameters) {
     }
 
     void Renderer::MakeTextForBus(const svg::Color& color, const svg::Point& point, const domain::Bus* bus, std::vector<svg::Text>& text_buses) const {
@@ -47,7 +47,7 @@ namespace map_renderer {
         text_buses.push_back(std::move(text_bus));
     }
 
-    void Renderer::MakeTextForStop(const svg::Point & point, const domain::Stop * stop, svg::Document& doc) const {
+    void Renderer::MakeTextForStop(const svg::Point& point, const domain::Stop* stop, svg::Document& doc) const {
         svg::Text text_background;
         text_background.SetFillColor(parameters_.underlayer_color);
         text_background.SetStrokeColor(parameters_.underlayer_color);
@@ -62,7 +62,7 @@ namespace map_renderer {
         doc.Add(std::move(text_background));
 
         svg::Text text_bus;
-        text_bus.SetFillColor(svg::Color{"black"s});
+        text_bus.SetFillColor(svg::Color{ "black"s });
         text_bus.SetPosition(point);
         text_bus.SetOffset({ parameters_.stop_label_offset.first, parameters_.stop_label_offset.second });
         text_bus.SetFontSize(parameters_.stop_label_font_size);
@@ -95,7 +95,7 @@ namespace map_renderer {
                     doc.Add(std::move(polyline));
                     polyline = svg::Polyline{};
                     if (!bus->is_roundtrip && bus->stop_begin != bus->stop_end) {
-                        MakeTextForBus(parameters_.color_palette.at(i), sphere_projector({ bus->stop_end->latitude, bus->stop_end->longitude}), bus, text_buses);
+                        MakeTextForBus(parameters_.color_palette.at(i), sphere_projector({ bus->stop_end->latitude, bus->stop_end->longitude }), bus, text_buses);
                     }
                 }
                 i = (i + 1) == static_cast<int>(parameters_.color_palette.size()) ? 0 : (i + 1);
@@ -108,7 +108,7 @@ namespace map_renderer {
 
                 MakeTextForBus(parameters_.color_palette.at(i), point, bus, text_buses);
             }
-            
+
             polyline.AddPoint(point);
             unique_stops.emplace(route.first);
         }

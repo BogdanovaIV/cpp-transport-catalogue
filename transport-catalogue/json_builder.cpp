@@ -5,7 +5,7 @@ namespace json {
 	Builder::DictItemContext Builder::BaseContext::StartDict() {
 		return builder_.StartDict();
 	}
-	
+
 	Builder::DictValueContext Builder::BaseContext::Key(std::string key) {
 		return builder_.Key(key);
 	}
@@ -64,7 +64,7 @@ namespace json {
 					Dict& dict = const_cast<Dict&>(last_action->AsDict());
 					std::string last_key = keys_stack_.back();
 					keys_stack_.pop_back();
-					
+
 					dict[last_key] = std::move(result);
 					Node& dict_back = dict[last_key];
 					nodes_stack_.emplace_back(&dict_back);
@@ -83,7 +83,7 @@ namespace json {
 
 	Builder::DictValueContext Builder::Key(std::string key) {
 		kind_function_ Kfunction = kind_function_::key_;
-		if (! std::count(allowed_function_.begin(), allowed_function_.end(), Kfunction)) {
+		if (!std::count(allowed_function_.begin(), allowed_function_.end(), Kfunction)) {
 			throw std::logic_error("Logic error Key (wrong step).");
 		}
 
@@ -217,7 +217,7 @@ namespace json {
 				throw std::logic_error("Logic error EndDict (didn't find right parent).");
 			}
 		}
-		
+
 		allowed_function_.clear();
 		if (!nodes_stack_.empty()) {
 			allowed_function_.push_back(kind_function_::value_);
@@ -229,7 +229,7 @@ namespace json {
 			allowed_function_.push_back(kind_function_::build_);
 		}
 
-		return *this ;
+		return *this;
 	}
 
 	Builder::ArrayItemContext Builder::StartArray() {
@@ -315,7 +315,7 @@ namespace json {
 
 	Node& Builder::Build() {
 		kind_function_ Kfunction = kind_function_::build_;
-		if ((!allowed_function_.empty() && !std::count(allowed_function_.begin(), allowed_function_.end(), Kfunction)) 
+		if ((!allowed_function_.empty() && !std::count(allowed_function_.begin(), allowed_function_.end(), Kfunction))
 			|| !nodes_stack_.empty()
 			|| root_.IsNull()) {
 			throw std::logic_error("Logic error Build (wrong step).");
