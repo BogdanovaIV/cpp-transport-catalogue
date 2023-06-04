@@ -1,35 +1,8 @@
 #include "serialization.h"
 
 namespace serilization {
-	void MakeBase() {
-		input_json::Json_reader json_reader{ std::cin };
-		transport::TransportCatalogue TCatalogue = json_reader.MakeTransportCatalogue();
-		
-		const std::filesystem::path path(json_reader.GetSerializationSettingsFile());
-		if (path.empty()) {
-			std::cout << "File name didn't find."sv;
-			return;
-		}
-		transport_catalogue_serialize::TransportCatalogue STransportCatalogue = CreateTransportCatalogue(TCatalogue);
-		std::ofstream out_clear(path, std::ios::binary);
-		out_clear.clear();
-		out_clear.close();
 
-		std::ofstream out_file(path, std::ios::binary | std::ios::app);
-		STransportCatalogue.SerializeToOstream(&out_file);
-
-		domain::ParametersMap parameters = json_reader.MakeParametersForMap();
-		map_renderer_serialize::ParametersMap SParametersMap = CreateParametersMap(parameters);
-		SParametersMap.SerializeToOstream(&out_file);
-
-		domain::RoutingSettings routing_setings = json_reader.MakeRoutingSetting();
-		svg_serialize::RoutingSettings SRoutingSettings = CreateRoutingSettings(routing_setings);
-		SRoutingSettings.SerializeToOstream(&out_file);
-		out_file.close();
-
-	}
-
-	transport_catalogue_serialize::TransportCatalogue CreateTransportCatalogue(transport::TransportCatalogue& TCatalogue) {
+	transport_catalogue_serialize::TransportCatalogue SerializeTransportCatalogue(transport::TransportCatalogue& TCatalogue) {
 		transport_catalogue_serialize::TransportCatalogue STCatalogue;
 		for (auto& stop : TCatalogue.GetStops()) {
 			transport_catalogue_serialize::Stops* Sstop = STCatalogue.add_stops();
@@ -38,7 +11,7 @@ namespace serilization {
 			Sstop->set_longitude(stop.longitude);
 			Sstop->set_id(stop.id);
 		}
-		
+
 		for (auto& bus : TCatalogue.GetBuses()) {
 			transport_catalogue_serialize::Buses* Sbus = STCatalogue.add_buses();
 			Sbus->set_name(bus.name);
@@ -60,7 +33,7 @@ namespace serilization {
 		return STCatalogue;
 	}
 
-	map_renderer_serialize::ParametersMap CreateParametersMap(domain::ParametersMap& parameters) {
+	map_renderer_serialize::ParametersMap SerializeParametersMap(domain::ParametersMap& parameters) {
 		map_renderer_serialize::ParametersMap SParametersMap;
 		SParametersMap.set_width(parameters.width);
 		SParametersMap.set_height(parameters.height);
@@ -72,7 +45,7 @@ namespace serilization {
 		SParametersMap.set_stop_label_font_size(parameters.stop_label_font_size);
 		SParametersMap.set_stop_label_offset1(parameters.stop_label_offset.first);
 		SParametersMap.set_stop_label_offset2(parameters.stop_label_offset.second);
-		
+
 		struct ColorSerialeze {
 			map_renderer_serialize::Color& Scolor;
 
@@ -100,7 +73,7 @@ namespace serilization {
 		map_renderer_serialize::Color color;
 		std::visit(ColorSerialeze{ color }, parameters.underlayer_color);
 		*SParametersMap.mutable_underlayer_color() = std::move(color);
-		
+
 		SParametersMap.set_underlayer_width(parameters.underlayer_width);
 
 		for (auto& pcolor : parameters.color_palette) {
@@ -113,23 +86,41 @@ namespace serilization {
 		return SParametersMap;
 	}
 
-	svg_serialize::RoutingSettings CreateRoutingSettings(domain::RoutingSettings& routing_setings) {
+	svg_serialize::RoutingSettings SerializeRoutingSettings(domain::RoutingSettings& routing_setings) {
 		svg_serialize::RoutingSettings SRoutingSettings;
 		SRoutingSettings.set_bus_velocity(routing_setings.bus_velocity);
 		SRoutingSettings.set_bus_wait_time(routing_setings.bus_wait_time);
 		return SRoutingSettings;
 	}
 
-	void ProcessRequests() {
-		input_json::Json_reader json_reader{ std::cin };
-		const std::filesystem::path path(json_reader.GetSerializationSettingsFile());
-		auto parameters = DeserializeParametersMap(path);
+	void Serialize(std::string path_string, transport::TransportCatalogue& TCatalogue,
+		domain::ParametersMap& parameters, domain::RoutingSettings& routing_setings){
+				
+		const std::filesystem::path path(path_string);
+		if (path.empty()) {
+			std::cout << "File name didn't find."sv;
+			return;
+		}
+		transport_catalogue_serialize::TransportCatalogue STransportCatalogue = SerializeTransportCatalogue(TCatalogue);
+		std::ofstream out_clear(path, std::ios::binary);
+		out_clear.clear();
+		out_clear.close();
 
-		request_handler::Request request(DeserializeTransportCatalogue(path), parameters, DeserializeRoutingSetting(path));
-		json_reader.Reguest(request);
+		std::ofstream out_file(path, std::ios::binary | std::ios::app);
+		STransportCatalogue.SerializeToOstream(&out_file);
+
+		map_renderer_serialize::ParametersMap SParametersMap = SerializeParametersMap(parameters);
+		SParametersMap.SerializeToOstream(&out_file);
+
+		svg_serialize::RoutingSettings SRoutingSettings = SerializeRoutingSettings(routing_setings);
+		SRoutingSettings.SerializeToOstream(&out_file);
+		out_file.close();
+
 	}
 
-	transport::TransportCatalogue DeserializeTransportCatalogue(const std::filesystem::path& path) {
+	transport::TransportCatalogue DeserializeTransportCatalogue(std::string& path_string) {
+	
+		const std::filesystem::path path(path_string);
 		std::ifstream in_file(path, std::ios::binary);
 		transport::TransportCatalogue TCatalogue;
 		transport_catalogue_serialize::TransportCatalogue object;
@@ -180,8 +171,9 @@ namespace serilization {
 		return svg::Color{};
 	}
 
+	domain::ParametersMap DeserializeParametersMap(std::string& path_string) {
 
-	domain::ParametersMap DeserializeParametersMap(const std::filesystem::path& path) {
+		const std::filesystem::path path(path_string);
 		std::ifstream in_file(path, std::ios::binary);
 		domain::ParametersMap ParametersMap;
 		map_renderer_serialize::ParametersMap object;
@@ -210,7 +202,10 @@ namespace serilization {
 
 	}
 
-	domain::RoutingSettings DeserializeRoutingSetting(const std::filesystem::path& path) {
+	domain::RoutingSettings DeserializeRoutingSetting(std::string& path_string) {
+	
+		const std::filesystem::path path(path_string);
+
 		std::ifstream in_file(path, std::ios::binary);
 		domain::RoutingSettings RoutingSettings;
 		svg_serialize::RoutingSettings object;

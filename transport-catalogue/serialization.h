@@ -12,16 +12,11 @@ using namespace std::literals;
 
 namespace serilization {
 
-	void MakeBase();
+	void Serialize(std::string path_string, transport::TransportCatalogue& TCatalogue,
+		domain::ParametersMap& parameters, domain::RoutingSettings& routing_setings);
 
-	transport_catalogue_serialize::TransportCatalogue CreateTransportCatalogue(transport::TransportCatalogue& TCatalogue);
-	map_renderer_serialize::ParametersMap CreateParametersMap(domain::ParametersMap& parameters);
-	svg_serialize::RoutingSettings CreateRoutingSettings(domain::RoutingSettings& routing_setings);
-
-	void ProcessRequests();
-
-	transport::TransportCatalogue DeserializeTransportCatalogue(const std::filesystem::path& path);	
-	domain::ParametersMap DeserializeParametersMap(const std::filesystem::path& path);
-	domain::RoutingSettings DeserializeRoutingSetting(const std::filesystem::path& path);
+	transport::TransportCatalogue DeserializeTransportCatalogue(std::string& path_string);
+	domain::ParametersMap DeserializeParametersMap(std::string& path_string);
+	domain::RoutingSettings DeserializeRoutingSetting(std::string& path_string);
 
 }
